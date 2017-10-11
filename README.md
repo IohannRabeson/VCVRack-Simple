@@ -1,5 +1,5 @@
 # VCVRack-Simple
-My simple VCVRack modules
+My simple modules for [VCVRack](https://github.com/VCVRack/Rack) v0.4.0.
 
 ## Modules
 
