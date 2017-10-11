@@ -1,14 +1,18 @@
 #include "Simple.hpp"
+#include "../utils/PulseGate.hpp"
 #include <array>
 #include <algorithm>
 #include <iostream>
 
 namespace
 {
+	static constexpr unsigned int const MaxDivider = 512u;
+
 	class ClockDividerImp
 	{
 	public:
 		explicit ClockDividerImp(unsigned int index, unsigned int limit = 1u) :
+			m_lightPulse(2048u),
 			m_index(index),
 			m_limit(limit)
 		{
@@ -16,7 +20,11 @@ namespace
 
 		void setLimit(unsigned int limit){ m_limit = limit;	}
 
-		void reset(){ m_current = 0u; }
+		void reset()
+		{
+			m_current = 0u;
+			m_lightPulse.reset();
+		}
 
 		void process(bool const clockTrigger,
 					 std::vector<Param> const& params,
@@ -36,14 +44,20 @@ namespace
 					m_current = 0u;
 				}
 			}
-			output.value = (output.active && gate) ? 10.f : 0.f;
+			output.value = gate ? 10.f : 0.f;
+			m_lightState = output.active && m_lightPulse.process(gate) ? 1.0 : 0.f;
 		}
 
+		float* lightState()
+		{
+			return &m_lightState;
+		}
 	private:
-		PulseGenerator m_pulseGenerator;
+		PulseGate m_lightPulse;
 		unsigned int const m_index;
 		unsigned int m_current = 0u;
 		unsigned int m_limit = 1u;
+		float m_lightState = 0.f;
 	};
 }
 
@@ -82,14 +96,14 @@ struct ClockDivider : Module
 		NUM_OUTPUTS
 	};
 
-	ClockDivider() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS)
+	ClockDivider() :
+		Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS)
 	{
 		auto initClockDivider = 1u;
 
 		for (int i = OUTPUT_CLOCK_0; i < NUM_OUTPUTS; ++i)
 		{
 			m_clockDividers.emplace_back(i, std::min(128u, initClockDivider));
-			m_lights.emplace_back(0.f);
 			initClockDivider *= 2u;
 		};
 	}
@@ -109,25 +123,44 @@ struct ClockDivider : Module
 			divider.process(clockTick, params, outputs);
 		}
 	}
+
+	float* lightState(std::size_t const i)
+	{
+		return m_clockDividers[i].lightState();
+	}
 private:
 	std::vector<ClockDividerImp> m_clockDividers;
-	std::vector<float> m_lights;
 	SchmittTrigger m_resetTrigger;
 	SchmittTrigger m_clockTrigger;
 };
 
 struct ClockDividerKnob : Davies1900hSmallBlackSnapKnob
 {
-	Label* linkedLabel = nullptr;
+	void connectLabel(Label* label)
+	{
+		linkedLabel = label;
+		if (linkedLabel)
+		{
+			linkedLabel->text = formatCurrentValue();
+		}
+	}
 
-	void onChange()
+	void onChange() override
 	{
 		Davies1900hSmallBlackSnapKnob::onChange();
 		if (linkedLabel)
 		{
-			linkedLabel->text = "1 / " + std::to_string(static_cast<unsigned int>(value));
+			linkedLabel->text = formatCurrentValue();
+			std::cout << "onChange: " << formatCurrentValue() << std::endl;
 		}
 	}
+private:
+	std::string formatCurrentValue()const
+	{
+		return "1 / " + std::to_string(static_cast<unsigned int>(value));
+	}
+private:
+	Label* linkedLabel = nullptr;
 };
 
 namespace Helpers
@@ -166,39 +199,53 @@ ClockDividerWidget::ClockDividerWidget()
 
 	setModule(module);
 
-	LightPanel* mainPanel = new LightPanel;
+	LightPanel* const mainPanel = new LightPanel;
+
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 
+	// Setup input ports
 	Vec pos(Margin, Margin);
 
-	auto* resetInputWidget = Helpers::addInput<PJ301MPort>(this, module, ClockDivider::INPUT_RESET, pos, "Reset", -10.f, nullptr);
+	auto* const resetInputWidget = Helpers::addInput<PJ301MPort>(this, module, ClockDivider::INPUT_RESET, pos, "Reset", -10.f, nullptr);
 
 	pos.x += Margin * 2.f + resetInputWidget->box.size.y;
 	pos.y = Margin;
 
-	auto* clockInputWidget = Helpers::addInput<PJ301MPort>(this, module, ClockDivider::INPUT_CLOCK, pos, "Clock", -10.f, nullptr);
+	auto* const clockInputWidget = Helpers::addInput<PJ301MPort>(this, module, ClockDivider::INPUT_CLOCK, pos, "Clock", -10.f, nullptr);
 
 	pos.x = Margin;
 	pos.y += clockInputWidget->box.size.y + Margin * 2.f + 20.f;
 
+	auto defaultDividerValue = 1u;
+
+	// Setup clock outputs port and controls
 	for (auto i = 0u; i < ClockDivider::NUM_OUTPUTS; ++i)
 	{
-		auto* clockControl = dynamic_cast<ClockDividerKnob*>(createParam<ClockDividerKnob>(pos, module, i, 1.f, 128.f, 1.f));
+		auto* clockControl = dynamic_cast<ClockDividerKnob*>(createParam<ClockDividerKnob>(pos, module, i, 1.f, MaxDivider, defaultDividerValue));
 
+		defaultDividerValue *= 2u;
 		addParam(clockControl);
 
 		pos.x += clockControl->box.size.x + Margin;
 
-		auto* portWidget = createOutput<PJ301MPort>(pos, module, i);
+		auto* const portWidget = createOutput<PJ301MPort>(pos, module, i);
+
+		Vec lightPos = pos;
+
+		lightPos.x += 20.f;
+		lightPos.y += 2.f;
+
+		auto* const light = createValueLight<TinyLight<RedValueLight>>(lightPos, module->lightState(i));
 
 		addOutput(portWidget);
+		addChild(light);
 
 		pos.x += portWidget->box.size.x;
 
-		auto* textWidget = new Label;
+		auto* const textWidget = new Label;
 
-		clockControl->linkedLabel = textWidget;
+		clockControl->connectLabel(textWidget);
 		textWidget->box.pos = pos;
 
 		addChild(textWidget);
@@ -206,4 +253,6 @@ ClockDividerWidget::ClockDividerWidget()
 		pos.x = Margin;
 		pos.y += std::max({portWidget->box.size.y, clockControl->box.size.y, textWidget->box.size.y}) + Margin;
 	}
+	std::cout << "ctor\n";
+	initialize();
 }

@@ -1,8 +1,8 @@
 
-SOURCES = $(wildcard src/*.cpp)
+SOURCES = $(wildcard src/*.cpp) \
+		  utils/PulseGate.cpp
 
 include ../../plugin.mk
-
 
 dist: all
 	mkdir -p dist/Simple
