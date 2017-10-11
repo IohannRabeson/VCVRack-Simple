@@ -6,13 +6,13 @@
 
 namespace
 {
-	static constexpr unsigned int const MaxDivider = 512u;
+	static constexpr unsigned int const MaxDivider = 128u;
 
 	class ClockDividerImp
 	{
 	public:
 		explicit ClockDividerImp(unsigned int index, unsigned int limit = 1u) :
-			m_lightPulse(2048u),
+			m_lightPulse(4096u),
 			m_index(index),
 			m_limit(limit)
 		{
@@ -45,7 +45,7 @@ namespace
 				}
 			}
 			output.value = gate ? 10.f : 0.f;
-			m_lightState = output.active && m_lightPulse.process(gate) ? 1.0 : 0.f;
+			m_lightState = m_lightPulse.process(gate) ? 1.0 : 0.f;
 		}
 
 		float* lightState()
@@ -108,7 +108,13 @@ struct ClockDivider : Module
 		};
 	}
 
-	void step()
+	void reset()
+	{
+		std::for_each(m_clockDividers.begin(), m_clockDividers.end(),
+					  [](ClockDividerImp& imp) { imp.reset(); });
+	}
+
+	void step() override
 	{
 		auto const& inputClock = inputs.at(INPUT_CLOCK);
 		auto const& inputReset = inputs.at(INPUT_RESET);
@@ -116,7 +122,7 @@ struct ClockDivider : Module
 
 		if (inputReset.active && m_resetTrigger.process(inputReset.value))
 		{
-			std::for_each(m_clockDividers.begin(), m_clockDividers.end(), [](ClockDividerImp& imp) { imp.reset(); });
+			reset();
 		}
 		for (auto& divider : m_clockDividers)
 		{
@@ -127,6 +133,16 @@ struct ClockDivider : Module
 	float* lightState(std::size_t const i)
 	{
 		return m_clockDividers[i].lightState();
+	}
+
+	void initialize() override
+	{
+		reset();
+	}
+
+	void randomize() override
+	{
+		reset();
 	}
 private:
 	std::vector<ClockDividerImp> m_clockDividers;
@@ -151,7 +167,6 @@ struct ClockDividerKnob : Davies1900hSmallBlackSnapKnob
 		if (linkedLabel)
 		{
 			linkedLabel->text = formatCurrentValue();
-			std::cout << "onChange: " << formatCurrentValue() << std::endl;
 		}
 	}
 private:
@@ -253,6 +268,5 @@ ClockDividerWidget::ClockDividerWidget()
 		pos.x = Margin;
 		pos.y += std::max({portWidget->box.size.y, clockControl->box.size.y, textWidget->box.size.y}) + Margin;
 	}
-	std::cout << "ctor\n";
 	initialize();
 }
