@@ -5,7 +5,7 @@ compiler:
 
 before_install:
 - cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
-- mv Simple Rack/plugins/Simple
+- mv VCVRack-Simple ./Rack/plugins/VCVRack-Simple
 - cd Rack
 - make dep && make
 
