@@ -42,10 +42,8 @@ void ButtonTrigger::step()
 
 ButtonTriggerWidget::ButtonTriggerWidget()
 {
-	static constexpr float const PanelWidth = 70.f;
 	static constexpr float const Margin = 5.f;
 	static constexpr float const ButtonSize = 28.f;
-	static constexpr float const ConnectorSize = 30.f;
 
 	ButtonTrigger* const module = new ButtonTrigger;
 
