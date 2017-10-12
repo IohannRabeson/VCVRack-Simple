@@ -1,13 +1,16 @@
-os: osx
+os:
+ - osx
+ - linux
+
 language: cpp
 compiler:
-- clang
+ - clang
 
 before_install:
-- cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
-- mv VCVRack-Simple ./Rack/plugins/VCVRack-Simple
-- cd Rack
-- make dep && make
+ - cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
+ - mv VCVRack-Simple ./Rack/plugins/VCVRack-Simple
+ - cd Rack
+ - make dep && make
 
 script:
-- make allplugins
+ - make allplugins
