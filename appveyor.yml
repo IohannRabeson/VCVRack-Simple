@@ -1,0 +1,17 @@
+environment:
+  matrix:
+  - COMPILER: msys2
+    PLATFORM: x64
+    MSYS2_ARCH: x86_64
+    MSYS2_DIR: msys64
+    MSYSTEM: MINGW64
+    BIT: 64
+
+install:
+ - '%APPVEYOR_BUILD_FOLDER%\scripts\windows\install.bat'
+ - cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
+ - mv VCVRack-Simple ./Rack/plugins/VCVRack-Simple
+ - cd Rack
+ - make dep && make
+build_script:
+ - make allplugins
