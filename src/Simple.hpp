@@ -16,4 +16,9 @@ struct ClockDividerWidget : ModuleWidget
 	ClockDividerWidget();
 };
 
+struct RecorderWidget : ModuleWidget
+{
+	RecorderWidget();
+};
+
 #endif

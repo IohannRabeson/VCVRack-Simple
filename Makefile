@@ -1,6 +1,10 @@
-
-SOURCES = $(wildcard src/*.cpp) \
-		  utils/PulseGate.cpp
+SOURCES = src/Simple.cpp		\
+		  src/ClockDivider.cpp	\
+		  src/ButtonTrigger.cpp	\
+		  src/Recorder.cpp		\
+		  utils/PulseGate.cpp	\
+		  utils/WavRecorder.cpp	\
+		  utils/write_wav.c
 
 include ../../plugin.mk
 

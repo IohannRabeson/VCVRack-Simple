@@ -11,4 +11,5 @@ void init(rack::Plugin *p)
 
 	createModel<ButtonTriggerWidget>(plugin, "IO-ButtonTrigger", "Button Trigger");
 	createModel<ClockDividerWidget>(plugin, "IO-ClockDivider", "Clock Divider");
+	createModel<RecorderWidget>(plugin, "IO-Recorder", "Recorder");
 }
