@@ -2,6 +2,7 @@
 #include "Simple.hpp"
 
 #include <utils/WavWriter.hpp>
+#include <utils/SimpleHelpers.hpp>
 #include <dsp/digital.hpp>
 
 #include <iostream> // DEBUG
@@ -50,13 +51,13 @@ public:
 
 	void step() override
 	{
-		auto& leftInput = inputs[INPUT_LEFT_IN];
-		auto& rightInput = inputs[INPUT_RIGHT_IN];
-		auto const startStopValue = params[PARAM_START_STOP].value;
+		auto const& leftInput = inputs[INPUT_LEFT_IN];
+		auto const& rightInput = inputs[INPUT_RIGHT_IN];
+		auto const& startStopInput = inputs[INPUT_START_STOP];
+		auto const startStopValue = params[PARAM_START_STOP].value + getInputValue(startStopInput);
 
-		m_vuMeterLeft = leftInput.active ? leftInput.value / 10.f : 0.f;
-		m_vuMeterRight = rightInput.active ? rightInput.value / 10.f : 0.f;
-
+		m_vuMeterLeft = getInputValue(leftInput) / 10.f;
+		m_vuMeterRight = getInputValue(rightInput) / 10.f;
 		if (m_startStopTrigger.process(startStopValue))
 		{
 			if (m_writer.isRunning())
@@ -72,8 +73,8 @@ public:
 		{
 			WavWriter::Frame frame;
 
-			frame.samples[0u] = leftInput.value;
-			frame.samples[1u] = rightInput.value;
+			frame.samples[0u] = getInputValue(leftInput);
+			frame.samples[1u] = getInputValue(rightInput);
 			m_writer.push(frame);
 		}
 		if (m_writer.haveError())
