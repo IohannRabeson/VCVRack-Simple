@@ -4,6 +4,8 @@ SOURCES = $(wildcard src/*.cpp) \
 
 include ../../plugin.mk
 
+FLAGS += -I"./"
+
 dist: all
 	mkdir -p dist/Simple
 	cp LICENSE* dist/Simple/

@@ -1,6 +1,7 @@
 #include "Simple.hpp"
+#include <dsp/digital.hpp>
 
-struct ButtonTrigger : Module
+struct ButtonTrigger : rack::Module
 {
 	enum ParamIds
 	{
@@ -22,7 +23,7 @@ struct ButtonTrigger : Module
 	void step();
 
 private:
-	SchmittTrigger m_buttonTrigger;
+	rack::SchmittTrigger m_buttonTrigger;
 };
 
 void ButtonTrigger::step()
@@ -48,21 +49,21 @@ ButtonTriggerWidget::ButtonTriggerWidget()
 
 	ButtonTrigger* const module = new ButtonTrigger;
 
-	box.size = Vec(15 * 4, 380);
+	box.size = rack::Vec(15 * 4, 380);
 
 	setModule(module);
 
-	Panel* mainPanel = new LightPanel();
+	rack::Panel* mainPanel = new rack::LightPanel();
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 
-	addParam(createParam<CKD6>(Vec(Margin, Margin), module, ButtonTrigger::TRIGGER, 0.f, 1.f, 0.f));
+	addParam(rack::createParam<rack::CKD6>(rack::Vec(Margin, Margin), module, ButtonTrigger::TRIGGER, 0.f, 1.f, 0.f));
 
-	Vec pos(0, ButtonSize + Margin * 2.f);
+	rack::Vec pos(0, ButtonSize + Margin * 2.f);
 
 	for (auto i = 0u; i < ButtonTrigger::NUM_OUTPUTS; ++i)
 	{
-		addOutput(createOutput<PJ3410Port>(pos, module, i));
+		addOutput(rack::createOutput<rack::PJ3410Port>(pos, module, i));
 		pos.y += ButtonSize + Margin;
 	}
 }
