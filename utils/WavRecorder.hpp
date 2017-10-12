@@ -4,6 +4,7 @@
 #include <dsp/frame.hpp>
 #include <thread>
 #include <vector>
+#include "write_wav.h"
 
 class WavRecorder
 {
@@ -23,7 +24,6 @@ private:
 	void run(std::string const outputFilePath);
 private:
 	std::vector<Frame> m_buffer;
-	std::atomic<std::size_t> m_bufferSize;
 	std::atomic_bool m_running;
 	std::mutex m_mutexBuffer;
 	std::thread m_thread;
