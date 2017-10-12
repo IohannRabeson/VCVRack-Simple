@@ -1,4 +1,4 @@
-#include "WavRecorder.hpp"
+#include "WavWriter.hpp"
 #include "write_wav.h"
 
 #include <samplerate.h>
@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-std::string WavRecorder::getErrorText(Errors const error)
+std::string WavWriter::getErrorText(Errors const error)
 {
 	std::string text;
 
@@ -24,30 +24,28 @@ std::string WavRecorder::getErrorText(Errors const error)
 	return text;
 }
 
-WavRecorder::WavRecorder()
+WavWriter::WavWriter()
 {
 	m_running = false;
 	// The buffer can store 1 seconds
 	m_buffer.reserve(rack::gSampleRate);
 }
 
-WavRecorder::~WavRecorder()
+WavWriter::~WavWriter()
 {
 	stop();
-	if (m_thread.joinable())
-		m_thread.join();
+	finishThread();
 }
 
-void WavRecorder::start(std::string const& outputFilePath)
+void WavWriter::start(std::string const& outputFilePath)
 {
-	if (m_thread.joinable())
-		m_thread.join();
+	finishThread();
 	m_error = Errors::NoError;
 	m_buffer.clear();
-	m_thread = std::thread(&WavRecorder::run, this, outputFilePath);
+	m_thread = std::thread(&WavWriter::run, this, outputFilePath);
 }
 
-void WavRecorder::stop()
+void WavWriter::stop()
 {
 	if (m_running)
 	{
@@ -55,17 +53,19 @@ void WavRecorder::stop()
 	}
 }
 
-void WavRecorder::push(Frame const& frame)
+void WavWriter::push(Frame const& frame)
 {
 	std::unique_lock<std::mutex> lock(m_mutexBuffer);
 
 	m_buffer.push_back(frame);
 }
 
-void WavRecorder::run(std::string const outputFilePath)
+void WavWriter::run(std::string const outputFilePath)
 {
+	// The internal buffer can store 1 second of audio.
 	static std::chrono::milliseconds const WriteTimeInterval{500};
 	std::vector<short> buffer(rack::gSampleRate * ChannelCount, 0);
+	std::chrono::milliseconds elapsedTime{0u};
 	WAV_Writer writer;
 
 	if (Audio_WAV_OpenWriter(&writer, outputFilePath.c_str(), rack::gSampleRate, ChannelCount) < 0)
@@ -80,7 +80,8 @@ void WavRecorder::run(std::string const outputFilePath)
 	}
 	while (m_running)
 	{
-		std::this_thread::sleep_for(WriteTimeInterval);
+		std::this_thread::sleep_for(WriteTimeInterval - elapsedTime);
+		auto currentTime = std::chrono::steady_clock::now();
 		std::unique_lock<std::mutex> lock(m_mutexBuffer);
 		auto const frameCount = m_buffer.size();
 		auto const sampleCount = frameCount * ChannelCount;
@@ -97,7 +98,15 @@ void WavRecorder::run(std::string const outputFilePath)
 		lock.unlock();
 
 		Audio_WAV_WriteShorts(&writer, buffer.data(), sampleCount);
+
+		elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - currentTime);
 	}
 	Audio_WAV_CloseWriter(&writer);
 	std::cout << "Closing file" << std::endl;
+}
+
+void WavWriter::finishThread()
+{
+	if (m_thread.joinable())
+		m_thread.join();
 }

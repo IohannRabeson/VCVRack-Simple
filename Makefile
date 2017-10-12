@@ -3,7 +3,7 @@ SOURCES = src/Simple.cpp		\
 		  src/ButtonTrigger.cpp	\
 		  src/Recorder.cpp		\
 		  utils/PulseGate.cpp	\
-		  utils/WavRecorder.cpp	\
+		  utils/WavWriter.cpp	\
 		  utils/write_wav.c
 
 include ../../plugin.mk

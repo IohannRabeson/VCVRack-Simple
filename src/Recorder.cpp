@@ -1,6 +1,6 @@
 #include "rack.hpp"
 #include "Simple.hpp"
-#include "../utils/WavRecorder.hpp"
+#include "../utils/WavWriter.hpp"
 
 #include <iostream> // DEBUG
 
@@ -12,6 +12,7 @@ public:
 		INPUT_LEFT_IN = 0,
 		INPUT_RIGHT_IN,
 		INPUT_START_STOP,
+		INPUT_RECORD_ARM,
 		NUM_INPUTS
 	};
 
@@ -25,7 +26,8 @@ public:
 
 	enum OutputIds
 	{
-		OUTPUT_RECORD_START,
+		OUTPUT_START_STOP,
+		OUTPUT_RECORD_ARM,
 		NUM_OUTPUTS
 	};
 
@@ -34,18 +36,14 @@ public:
 	{
 	}
 
-	~Recorder()
-	{
-	}
-
 	void startRecording()
 	{
-		m_recorder.start(m_outputFilePath);
+		m_writer.start(m_outputFilePath);
 	}
 
 	void stopRecording()
 	{
-		m_recorder.stop();
+		m_writer.stop();
 	}
 
 	void step() override
@@ -59,7 +57,7 @@ public:
 
 		if (m_startStopTrigger.process(startStopValue))
 		{
-			if (m_recorder.isRunning())
+			if (m_writer.isRunning())
 			{
 				stopRecording();
 			}
@@ -68,30 +66,30 @@ public:
 				startRecording();
 			}
 		}
-		if (m_recorder.isRunning())
+		if (m_writer.isRunning())
 		{
-			WavRecorder::Frame frame;
+			WavWriter::Frame frame;
 
 			frame.samples[0u] = leftInput.value;
 			frame.samples[1u] = rightInput.value;
-			m_recorder.push(frame);
+			m_writer.push(frame);
 		}
-		if (m_recorder.haveError())
+		if (m_writer.haveError())
 		{
 			// TODO: error notification	
-			std::cerr << "Recorder error: " << WavRecorder::getErrorText(m_recorder.error()) << std::endl;
-			m_recorder.clearError();
+			std::cerr << "Recorder error: " << WavWriter::getErrorText(m_writer.error()) << std::endl;
+			m_writer.clearError();
 		}
 	}
 
 	float* vuMeterLeft() { return &m_vuMeterLeft; }
 	float* vuMeterRight() { return &m_vuMeterRight; }
 private:
+	WavWriter m_writer;
 	SchmittTrigger m_startStopTrigger;
 	std::string m_outputFilePath = "yolo.wav";
 	float m_vuMeterLeft = 0.f;
 	float m_vuMeterRight = 0.f;
-	WavRecorder m_recorder;
 };
 
 namespace Helpers

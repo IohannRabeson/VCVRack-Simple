@@ -1,12 +1,12 @@
-#if!defined WAVRECORDER_HPP
-#define WAVRECORDER_HPP
+#if!defined WAVWRITER_HPP
+#define WAVWRITER_HPP
 #include <dsp/ringbuffer.hpp>
 #include <dsp/frame.hpp>
 #include <thread>
 #include <vector>
 #include "write_wav.h"
 
-class WavRecorder
+class WavWriter
 {
 	static constexpr unsigned int const ChannelCount = 2u;
 public:
@@ -21,19 +21,27 @@ public:
 
 	static std::string getErrorText(Errors const error);
 
-	WavRecorder();
-	~WavRecorder();
+	WavWriter();
+	~WavWriter();
 
+	/*! Start writing thread
+	 	\param outputFilePath Output file path. This file can be already existing, but in this case it
+		must be writable.
+	 */
 	void start(std::string const& outputFilePath);
+	/*! Stop writing */
 	void stop();
+
 	bool isRunning()const { return m_running; }
 	bool haveError()const { return m_error != Errors::NoError; }
 	void clearError() { m_error = Errors::NoError; }
 	Errors error()const { return m_error; }
 
+	/*! Push data to the buffer. */
 	void push(Frame const& frame);
 private:
 	void run(std::string const outputFilePath);
+	void finishThread();
 private:
 	std::vector<Frame> m_buffer;
 	std::atomic_bool m_running;
