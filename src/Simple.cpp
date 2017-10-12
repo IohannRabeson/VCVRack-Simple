@@ -1,6 +1,6 @@
 #include "Simple.hpp"
 
-Plugin *plugin;
+rack::Plugin* plugin;
 
 void init(rack::Plugin *p)
 {
@@ -9,7 +9,7 @@ void init(rack::Plugin *p)
 	plugin->name = "Simple";
 	plugin->homepageUrl = "https://github.com/IohannRabeson/VCVRack-Simple";
 
-	createModel<ButtonTriggerWidget>(plugin, "IO-ButtonTrigger", "Button Trigger");
-	createModel<ClockDividerWidget>(plugin, "IO-ClockDivider", "Clock Divider");
-	createModel<RecorderWidget>(plugin, "IO-Recorder", "Recorder");
+	rack::createModel<ButtonTriggerWidget>(plugin, "IO-ButtonTrigger", "Button Trigger");
+	rack::createModel<ClockDividerWidget>(plugin, "IO-ClockDivider", "Clock Divider");
+	rack::createModel<RecorderWidget>(plugin, "IO-Recorder", "Recorder");
 }

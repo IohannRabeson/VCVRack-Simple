@@ -1,5 +1,7 @@
 #include "Simple.hpp"
-#include "../utils/PulseGate.hpp"
+#include <utils/PulseGate.hpp>
+#include <dsp/digital.hpp>
+
 #include <array>
 #include <algorithm>
 #include <iostream>
@@ -27,8 +29,8 @@ namespace
 		}
 
 		void process(bool const clockTrigger,
-					 std::vector<Param> const& params,
-					 std::vector<Output>& outputs)
+					 std::vector<rack::Param> const& params,
+					 std::vector<rack::Output>& outputs)
 		{
 			auto const& param = params.at(m_index);
 			auto& output = outputs.at(m_index);
@@ -61,7 +63,7 @@ namespace
 	};
 }
 
-struct ClockDivider : Module
+struct ClockDivider : rack::Module
 {
 	enum ParamsIds
 	{
@@ -146,13 +148,13 @@ struct ClockDivider : Module
 	}
 private:
 	std::vector<ClockDividerImp> m_clockDividers;
-	SchmittTrigger m_resetTrigger;
-	SchmittTrigger m_clockTrigger;
+	rack::SchmittTrigger m_resetTrigger;
+	rack::SchmittTrigger m_clockTrigger;
 };
 
-struct ClockDividerKnob : Davies1900hSmallBlackSnapKnob
+struct ClockDividerKnob : rack::Davies1900hSmallBlackSnapKnob
 {
-	void connectLabel(Label* label)
+	void connectLabel(rack::Label* label)
 	{
 		linkedLabel = label;
 		if (linkedLabel)
@@ -163,7 +165,7 @@ struct ClockDividerKnob : Davies1900hSmallBlackSnapKnob
 
 	void onChange() override
 	{
-		Davies1900hSmallBlackSnapKnob::onChange();
+		rack::Davies1900hSmallBlackSnapKnob::onChange();
 		if (linkedLabel)
 		{
 			linkedLabel->text = formatCurrentValue();
@@ -175,19 +177,19 @@ private:
 		return "1 / " + std::to_string(static_cast<unsigned int>(value));
 	}
 private:
-	Label* linkedLabel = nullptr;
+	rack::Label* linkedLabel = nullptr;
 };
 
 namespace Helpers
 {
 	template <class InputPortClass>
-	static Port* addInput(ModuleWidget* const widget, Module* module, int const inputId, Vec& position, std::string const& label, float labelOffset, float* light)
+	static rack::Port* addInput(rack::ModuleWidget* const widget, rack::Module* module, int const inputId, rack::Vec& position, std::string const& label, float labelOffset, float* light)
 	{
-		auto* const port = createInput<InputPortClass>(position, module, inputId);
+		auto* const port = rack::createInput<InputPortClass>(position, module, inputId);
 
 		if (!label.empty())
 		{
-			Label* const labelWidget = new Label;
+			rack::Label* const labelWidget = new rack::Label;
 
 			labelWidget->box.pos = position;
 			labelWidget->box.pos.x += labelOffset;
@@ -208,26 +210,26 @@ ClockDividerWidget::ClockDividerWidget()
 {
 	static constexpr float const Margin = 5.f;
 
-	ClockDivider* const module = new ClockDivider;
+	auto* const module = new ClockDivider;
 
-	box.size = Vec(15 * 8, 380);
+	box.size = rack::Vec(15 * 8, 380);
 
 	setModule(module);
 
-	LightPanel* const mainPanel = new LightPanel;
+	auto* const mainPanel = new rack::LightPanel;
 
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 
 	// Setup input ports
-	Vec pos(Margin, Margin);
+	rack::Vec pos(Margin, Margin);
 
-	auto* const resetInputWidget = Helpers::addInput<PJ301MPort>(this, module, ClockDivider::INPUT_RESET, pos, "Reset", -10.f, nullptr);
+	auto* const resetInputWidget = Helpers::addInput<rack::PJ301MPort>(this, module, ClockDivider::INPUT_RESET, pos, "Reset", -10.f, nullptr);
 
 	pos.x += Margin * 2.f + resetInputWidget->box.size.y;
 	pos.y = Margin;
 
-	auto* const clockInputWidget = Helpers::addInput<PJ301MPort>(this, module, ClockDivider::INPUT_CLOCK, pos, "Clock", -10.f, nullptr);
+	auto* const clockInputWidget = Helpers::addInput<rack::PJ301MPort>(this, module, ClockDivider::INPUT_CLOCK, pos, "Clock", -10.f, nullptr);
 
 	pos.x = Margin;
 	pos.y += clockInputWidget->box.size.y + Margin * 2.f + 20.f;
@@ -237,28 +239,28 @@ ClockDividerWidget::ClockDividerWidget()
 	// Setup clock outputs port and controls
 	for (auto i = 0u; i < ClockDivider::NUM_OUTPUTS; ++i)
 	{
-		auto* clockControl = dynamic_cast<ClockDividerKnob*>(createParam<ClockDividerKnob>(pos, module, i, 1.f, MaxDivider, defaultDividerValue));
+		auto* clockControl = dynamic_cast<ClockDividerKnob*>(rack::createParam<ClockDividerKnob>(pos, module, i, 1.f, MaxDivider, defaultDividerValue));
 
 		defaultDividerValue *= 2u;
 		addParam(clockControl);
 
 		pos.x += clockControl->box.size.x + Margin;
 
-		auto* const portWidget = createOutput<PJ301MPort>(pos, module, i);
+		auto* const portWidget = rack::createOutput<rack::PJ301MPort>(pos, module, i);
 
-		Vec lightPos = pos;
+		rack::Vec lightPos = pos;
 
 		lightPos.x += 20.f;
 		lightPos.y += 2.f;
 
-		auto* const light = createValueLight<TinyLight<RedValueLight>>(lightPos, module->lightState(i));
+		auto* const light = rack::createValueLight<rack::TinyLight<rack::RedValueLight>>(lightPos, module->lightState(i));
 
 		addOutput(portWidget);
 		addChild(light);
 
 		pos.x += portWidget->box.size.x;
 
-		auto* const textWidget = new Label;
+		auto* const textWidget = new rack::Label;
 
 		clockControl->connectLabel(textWidget);
 		textWidget->box.pos = pos;

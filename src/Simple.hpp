@@ -2,21 +2,19 @@
 #define SIMPLE_HPP
 #include "rack.hpp"
 
-using namespace rack;
+extern rack::Plugin *plugin;
 
-extern Plugin *plugin;
-
-struct ButtonTriggerWidget : ModuleWidget
+struct ButtonTriggerWidget : rack::ModuleWidget
 {
 	ButtonTriggerWidget();
 };
 
-struct ClockDividerWidget : ModuleWidget
+struct ClockDividerWidget : rack::ModuleWidget
 {
 	ClockDividerWidget();
 };
 
-struct RecorderWidget : ModuleWidget
+struct RecorderWidget : rack::ModuleWidget
 {
 	RecorderWidget();
 };

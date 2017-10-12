@@ -8,6 +8,8 @@ SOURCES = src/Simple.cpp		\
 
 include ../../plugin.mk
 
+FLAGS += -I"./"
+
 dist: all
 	mkdir -p dist/Simple
 	cp LICENSE* dist/Simple/

@@ -1,6 +1,8 @@
 #include "rack.hpp"
 #include "Simple.hpp"
-#include "../utils/WavWriter.hpp"
+
+#include <utils/WavWriter.hpp>
+#include <dsp/digital.hpp>
 
 #include <iostream> // DEBUG
 
@@ -86,7 +88,7 @@ public:
 	float* vuMeterRight() { return &m_vuMeterRight; }
 private:
 	WavWriter m_writer;
-	SchmittTrigger m_startStopTrigger;
+	rack::SchmittTrigger m_startStopTrigger;
 	std::string m_outputFilePath = "yolo.wav";
 	float m_vuMeterLeft = 0.f;
 	float m_vuMeterRight = 0.f;
@@ -95,13 +97,13 @@ private:
 namespace Helpers
 {
 	template <class InputPortClass>
-	static Port* addAudioInput(ModuleWidget* const widget, Module* const module,
-								 int const inputId, Vec const& position,
-								 std::string const& label, float* lightValue)
+	static rack::Port* addAudioInput(rack::ModuleWidget* const widget, rack::Module* const module,
+								 	 int const inputId, rack::Vec const& position,
+								 	 std::string const& label, float* lightValue)
 	{
 		auto* const port = rack::createInput<InputPortClass>(position, module, inputId);
 		auto* const labelWidget = new rack::Label;
-		auto* const light = rack::createValueLight<SmallLight<GreenValueLight>>(position, lightValue);
+		auto* const light = rack::createValueLight<rack::SmallLight<rack::GreenValueLight>>(position, lightValue);
 
 		labelWidget->text = label;
 		widget->addInput(port);
@@ -126,10 +128,10 @@ RecorderWidget::RecorderWidget()
 	static constexpr float const Width = 15.f * 6.f;
 	static constexpr float const Height = 380.f;
 
-	Recorder* const module = new Recorder;
-	LightPanel* const mainPanel = new LightPanel;
+	auto* const module = new Recorder;
+	auto* const mainPanel = new rack::LightPanel;
 
-	box.size = Vec(Width, Height);
+	box.size = rack::Vec(Width, Height);
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 	setModule(module);
@@ -137,8 +139,8 @@ RecorderWidget::RecorderWidget()
 		static constexpr float const Left = (Width - (PortSize * 2.f + Spacing)) / 2.f;
 		static constexpr float const Top = Margin + 25;
 
-		Helpers::addAudioInput<rack::PJ301MPort>(this, module, Recorder::INPUT_LEFT_IN, Vec{Left, Top}, "L", module->vuMeterLeft());
-		Helpers::addAudioInput<rack::PJ301MPort>(this, module, Recorder::INPUT_RIGHT_IN, Vec{Left + Spacing + PortSize, Top}, "R", module->vuMeterRight());
+		Helpers::addAudioInput<rack::PJ301MPort>(this, module, Recorder::INPUT_LEFT_IN, rack::Vec{Left, Top}, "L", module->vuMeterLeft());
+		Helpers::addAudioInput<rack::PJ301MPort>(this, module, Recorder::INPUT_RIGHT_IN, rack::Vec{Left + Spacing + PortSize, Top}, "R", module->vuMeterRight());
 	}
-	addParam(rack::createParam<rack::CKD6>(Vec(Margin, Margin), module, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f));
+	addParam(rack::createParam<rack::CKD6>(rack::Vec(Margin, Margin), module, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f));
 }
