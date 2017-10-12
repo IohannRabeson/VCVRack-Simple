@@ -95,15 +95,19 @@ struct ClockDivider : rack::Module
 		OUTPUT_CLOCK_5,
 		OUTPUT_CLOCK_6,
 		OUTPUT_CLOCK_7,
+		OUTPUT_RESET,
+		OUTPUT_CLOCK,
 		NUM_OUTPUTS
 	};
+
+	static constexpr unsigned int const ClockDividerCount = 8u;
 
 	ClockDivider() :
 		Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS)
 	{
 		auto initClockDivider = 1u;
 
-		for (int i = OUTPUT_CLOCK_0; i < NUM_OUTPUTS; ++i)
+		for (auto i = 0u; i < ClockDividerCount; ++i)
 		{
 			m_clockDividers.emplace_back(i, std::min(128u, initClockDivider));
 			initClockDivider *= 2u;
@@ -130,6 +134,9 @@ struct ClockDivider : rack::Module
 		{
 			divider.process(clockTick, params, outputs);
 		}
+
+		outputs.at(OUTPUT_CLOCK).value = inputClock.value;
+		outputs.at(OUTPUT_RESET).value = inputReset.value;
 	}
 
 	float* lightState(std::size_t const i)
@@ -183,7 +190,9 @@ private:
 namespace Helpers
 {
 	template <class InputPortClass>
-	static rack::Port* addInput(rack::ModuleWidget* const widget, rack::Module* module, int const inputId, rack::Vec& position, std::string const& label, float labelOffset, float* light)
+	static rack::Port* addInput(rack::ModuleWidget* const widget, rack::Module* module, int const inputId,
+								rack::Vec const& position, std::string const& label, float labelOffset,
+								float* light)
 	{
 		auto* const port = rack::createInput<InputPortClass>(position, module, inputId);
 
@@ -196,7 +205,7 @@ namespace Helpers
 			labelWidget->text = label;
 			widget->addChild(labelWidget);
 
-			position.y += labelWidget->box.size.y;
+//			position.y += labelWidget->box.size.y;
 		}
 
 		port->box.pos = position;
@@ -216,30 +225,32 @@ ClockDividerWidget::ClockDividerWidget()
 
 	setModule(module);
 
-	auto* const mainPanel = new rack::LightPanel;
+	auto* const mainPanel = new rack::SVGPanel;
 
 	mainPanel->box.size = box.size;
+	mainPanel->setBackground(rack::SVG::load("plugins/VCVRack-Simple/res/clock_divider.svg"));
 	addChild(mainPanel);
 
+	addChild(rack::createScrew<rack::ScrewSilver>({15, 0}));
+	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, 0}));
+	addChild(rack::createScrew<rack::ScrewSilver>({15, box.size.y - 15}));
+	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, box.size.y - 15}));
+
 	// Setup input ports
-	rack::Vec pos(Margin, Margin);
+	addInput(rack::createInput<rack::PJ301MPort>({30, 45}, module, ClockDivider::INPUT_RESET));
+	addOutput(rack::createOutput<rack::PJ301MPort>({30, 90}, module, ClockDivider::OUTPUT_RESET));
 
-	auto* const resetInputWidget = Helpers::addInput<rack::PJ301MPort>(this, module, ClockDivider::INPUT_RESET, pos, "Reset", -10.f, nullptr);
-
-	pos.x += Margin * 2.f + resetInputWidget->box.size.y;
-	pos.y = Margin;
-
-	auto* const clockInputWidget = Helpers::addInput<rack::PJ301MPort>(this, module, ClockDivider::INPUT_CLOCK, pos, "Clock", -10.f, nullptr);
-
-	pos.x = Margin;
-	pos.y += clockInputWidget->box.size.y + Margin * 2.f + 20.f;
+	addInput(rack::createInput<rack::PJ301MPort>({70, 45}, module, ClockDivider::INPUT_CLOCK));
+	addOutput(rack::createOutput<rack::PJ301MPort>({70, 90}, module, ClockDivider::OUTPUT_CLOCK));
 
 	auto defaultDividerValue = 1u;
+	auto const left = 10;
+	rack::Vec pos{left, 125};
 
 	// Setup clock outputs port and controls
-	for (auto i = 0u; i < ClockDivider::NUM_OUTPUTS; ++i)
+	for (auto i = 0u; i < 8u; ++i)
 	{
-		auto* clockControl = dynamic_cast<ClockDividerKnob*>(rack::createParam<ClockDividerKnob>(pos, module, i, 1.f, MaxDivider, defaultDividerValue));
+		auto* clockControl = dynamic_cast<ClockDividerKnob*>(rack::createParam<ClockDividerKnob>(pos, module, ClockDivider::OUTPUT_CLOCK_0 + i, 1.f, MaxDivider, defaultDividerValue));
 
 		defaultDividerValue *= 2u;
 		addParam(clockControl);
@@ -262,13 +273,15 @@ ClockDividerWidget::ClockDividerWidget()
 
 		auto* const textWidget = new rack::Label;
 
+		clockControl->box.size = portWidget->box.size;
 		clockControl->connectLabel(textWidget);
 		textWidget->box.pos = pos;
+		textWidget->box.pos.y += 2;
 
 		addChild(textWidget);
 
-		pos.x = Margin;
-		pos.y += std::max({portWidget->box.size.y, clockControl->box.size.y, textWidget->box.size.y}) + Margin;
+		pos.x = left;
+		pos.y += 30;
 	}
 	initialize();
 }
