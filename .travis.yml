@@ -4,7 +4,7 @@ compiler:
 - clang
 
 before_install:
-- cd .. && git clone --recursive git@github.com:VCVRack/Rack.git
+- cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
 - mv Simple Rack/plugins/Simple
 - cd Rack
 - make dep && make
