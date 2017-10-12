@@ -76,6 +76,12 @@ public:
 			frame.samples[1u] = rightInput.value;
 			m_recorder.push(frame);
 		}
+		if (m_recorder.haveError())
+		{
+			// TODO: error notification	
+			std::cerr << "Recorder error: " << WavRecorder::getErrorText(m_recorder.error()) << std::endl;
+			m_recorder.clearError();
+		}
 	}
 
 	float* vuMeterLeft() { return &m_vuMeterLeft; }

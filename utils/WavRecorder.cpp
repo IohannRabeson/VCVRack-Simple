@@ -6,6 +6,24 @@
 
 #include <iostream>
 
+std::string WavRecorder::getErrorText(Errors const error)
+{
+	std::string text;
+
+	switch (error)
+	{
+	case Errors::BufferOverflow:
+		text = "buffer overflow";
+		break;
+	case Errors::UnableToOpenFile:
+		text = "unable to open file for writing";
+		break;
+	default:
+		break;
+	}
+	return text;
+}
+
 WavRecorder::WavRecorder()
 {
 	m_running = false;
@@ -24,6 +42,7 @@ void WavRecorder::start(std::string const& outputFilePath)
 {
 	if (m_thread.joinable())
 		m_thread.join();
+	m_error = Errors::NoError;
 	m_buffer.clear();
 	m_thread = std::thread(&WavRecorder::run, this, outputFilePath);
 }
@@ -49,7 +68,12 @@ void WavRecorder::run(std::string const outputFilePath)
 	std::vector<short> buffer(rack::gSampleRate * ChannelCount, 0);
 	WAV_Writer writer;
 
-	if (Audio_WAV_OpenWriter(&writer, outputFilePath.c_str(), rack::gSampleRate, ChannelCount) >= 0)
+	if (Audio_WAV_OpenWriter(&writer, outputFilePath.c_str(), rack::gSampleRate, ChannelCount) < 0)
+	{
+		m_error = Errors::UnableToOpenFile;
+		return;
+	}
+	else
 	{
 		std::cout << "Creating file '" << outputFilePath << "'" << std::endl;
 		m_running = true;
@@ -61,13 +85,17 @@ void WavRecorder::run(std::string const outputFilePath)
 		auto const frameCount = m_buffer.size();
 		auto const sampleCount = frameCount * ChannelCount;
 
-		assert( buffer.size() >= sampleCount );
+		if( sampleCount > buffer.size())
+		{
+			m_running = false;
+			m_error = Errors::BufferOverflow;
+			break;
+		}
 
 		src_float_to_short_array(m_buffer.data()->samples, buffer.data(), sampleCount);
 		m_buffer.clear();
 		lock.unlock();
 
-		std::cout << "Writing " << frameCount << " frames" << std::endl;
 		Audio_WAV_WriteShorts(&writer, buffer.data(), sampleCount);
 	}
 	Audio_WAV_CloseWriter(&writer);
