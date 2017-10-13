@@ -2,12 +2,12 @@
 SOURCES = $(wildcard src/*.cpp) \
 		  utils/PulseGate.cpp
 
+FLAGS += -I"."
+
 include ../../plugin.mk
 
-FLAGS += -I"./"
-
 dist: all
-	mkdir -p dist/Simple
-	cp LICENSE* dist/Simple/
-	cp plugin.* dist/Simple/
-	cp -R res dist/Simple/
+	mkdir -p dist/VCVRack-Simple
+	cp LICENSE* dist/VCVRack-Simple/
+	cp plugin.* dist/VCVRack-Simple/
+	cp -R res dist/VCVRack-Simple/
