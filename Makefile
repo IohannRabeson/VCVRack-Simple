@@ -1,9 +1,11 @@
-SOURCES = src/Simple.cpp		\
-		  src/ClockDivider.cpp	\
-		  src/ButtonTrigger.cpp	\
-		  src/Recorder.cpp		\
-		  utils/PulseGate.cpp	\
-		  utils/WavWriter.cpp	\
+SOURCES = src/Simple.cpp			\
+		  src/ClockDivider.cpp		\
+		  src/ButtonTrigger.cpp		\
+		  src/Recorder.cpp			\
+		  utils/LightControl.cpp	\
+		  utils/PulseGate.cpp		\
+		  utils/WavWriter.cpp		\
+		  utils/StateMachine.cpp	\
 		  utils/write_wav.c
 
 include ../../plugin.mk

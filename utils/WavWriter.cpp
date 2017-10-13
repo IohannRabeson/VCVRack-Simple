@@ -62,8 +62,8 @@ void WavWriter::push(Frame const& frame)
 
 void WavWriter::run(std::string const outputFilePath)
 {
+	static std::chrono::milliseconds const WriteTimeInterval{250};
 	// The internal buffer can store 1 second of audio.
-	static std::chrono::milliseconds const WriteTimeInterval{500};
 	std::vector<short> buffer(rack::gSampleRate * ChannelCount, 0);
 	std::chrono::milliseconds elapsedTime{0u};
 	WAV_Writer writer;
@@ -75,7 +75,7 @@ void WavWriter::run(std::string const outputFilePath)
 	}
 	else
 	{
-		std::cout << "Creating file '" << outputFilePath << "'" << std::endl;
+		std::cout << "Opening file '" << outputFilePath << "'" << std::endl;
 		m_running = true;
 	}
 	while (m_running)
@@ -102,7 +102,7 @@ void WavWriter::run(std::string const outputFilePath)
 		elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - currentTime);
 	}
 	Audio_WAV_CloseWriter(&writer);
-	std::cout << "Closing file" << std::endl;
+	std::cout << "Closing file '" << outputFilePath << "'" << std::endl;
 }
 
 void WavWriter::finishThread()

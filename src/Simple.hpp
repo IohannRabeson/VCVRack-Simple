@@ -1,6 +1,7 @@
 #if!defined SIMPLE_HPP
 #define SIMPLE_HPP
-#include "rack.hpp"
+#include <rack.hpp>
+#include <utils/ExtendedModuleWidget.hpp>
 
 extern rack::Plugin *plugin;
 
@@ -14,9 +15,17 @@ struct ClockDividerWidget : rack::ModuleWidget
 	ClockDividerWidget();
 };
 
-struct RecorderWidget : rack::ModuleWidget
+class Recorder;
+
+struct RecorderWidget : ExtendedModuleWidget
 {
 	RecorderWidget();
+
+private:
+	void onArmButtonClicked();
+	bool selectOutputFile();
+private:
+	Recorder* const m_recorder;
 };
 
 #endif
