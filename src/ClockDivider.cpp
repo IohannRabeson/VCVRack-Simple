@@ -181,7 +181,7 @@ struct ClockDividerKnob : rack::Davies1900hSmallBlackSnapKnob
 private:
 	std::string formatCurrentValue()const
 	{
-		return "1 / " + std::to_string(static_cast<unsigned int>(value));
+		return "/" + std::to_string(static_cast<unsigned int>(value));
 	}
 private:
 	rack::Label* linkedLabel = nullptr;
