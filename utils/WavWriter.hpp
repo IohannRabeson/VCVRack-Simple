@@ -3,6 +3,7 @@
 #include <dsp/ringbuffer.hpp>
 #include <dsp/frame.hpp>
 #include <thread>
+#include <atomic>
 #include <vector>
 #include "write_wav.h"
 
@@ -29,6 +30,7 @@ public:
 		must be writable.
 	 */
 	void start(std::string const& outputFilePath);
+
 	/*! Stop writing */
 	void stop();
 
@@ -44,10 +46,10 @@ private:
 	void finishThread();
 private:
 	std::vector<Frame> m_buffer;
-	std::atomic_bool m_running;
-	std::atomic<Errors> m_error;
 	std::mutex m_mutexBuffer;
 	std::thread m_thread;
+	std::atomic<bool> m_running;
+	std::atomic<Errors> m_error;
 };
 
 #endif
