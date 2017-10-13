@@ -4,14 +4,14 @@
 class PulseGate
 {
 public:
-	explicit PulseGate(unsigned int pulseDuration = 16u);
+	explicit PulseGate(float pulseDuration = 250.f);
 
 	void reset();
 	bool process(bool gate);
 private:
-	/*! The pulse duration in frame. */
-	unsigned int m_pulseDuration;
-	unsigned int m_currentCount = 0u;
+	/*! The pulse duration in second. */
+	float m_pulseDuration;
+	float m_current = 0.f;
 	bool m_pulse = false;
 };
 
