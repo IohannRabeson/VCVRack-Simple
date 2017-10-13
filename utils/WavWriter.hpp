@@ -4,6 +4,7 @@
 #include <dsp/frame.hpp>
 #include <thread>
 #include <atomic>
+#include <mutex>
 #include <vector>
 #include "write_wav.h"
 
