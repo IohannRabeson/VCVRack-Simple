@@ -14,7 +14,7 @@ namespace
 	{
 	public:
 		explicit ClockDividerImp(unsigned int index, unsigned int limit = 1u) :
-			m_lightPulse(4096u),
+			m_lightPulse(0.2f),
 			m_index(index),
 			m_limit(limit)
 		{
