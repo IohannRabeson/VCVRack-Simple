@@ -5,7 +5,7 @@ My simple modules for [VCVRack](https://github.com/VCVRack/Rack) (dev version).
 
  - Clock divider  
   ![clock_divider_screenshot](screenshots/clock_divider.png)
- - Button trigger
+ - Button trigger  
   ![button_trigger_screenshot](screenshots/button_trigger.png)
  
  More modules comming "soon" (see [issues](https://github.com/IohannRabeson/VCVRack-Simple/issues)).
