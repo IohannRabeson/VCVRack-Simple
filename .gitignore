@@ -57,3 +57,6 @@ profiling
 
 # QT creator
 *.autosave
+
+# VCVRack dist folder
+dist

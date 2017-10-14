@@ -15,6 +15,10 @@ struct ButtonTrigger : rack::Module
 		OUTPUT_1,
 		OUTPUT_2,
 		OUTPUT_3,
+		OUTPUT_4,
+		OUTPUT_5,
+		OUTPUT_6,
+		OUTPUT_7,
 		NUM_OUTPUTS
 	};
 
@@ -40,9 +44,23 @@ void ButtonTrigger::step()
 	}
 }
 
+namespace Helpers
+{
+	template <class T>
+	static T* centerHorizontaly(T* const widget, float const panelWidth)
+	{
+		auto const widgetWidth = widget->box.size.x;
+		auto const position = (panelWidth - widgetWidth) / 2.f;
+
+		widget->box.pos.x = position;
+		return widget;
+	}
+}
+
 ButtonTriggerWidget::ButtonTriggerWidget()
 {
 	static constexpr float const Margin = 5.f;
+	static constexpr float const Top = 50.f;
 	static constexpr float const ButtonSize = 28.f;
 
 	ButtonTrigger* const module = new ButtonTrigger;
@@ -51,17 +69,23 @@ ButtonTriggerWidget::ButtonTriggerWidget()
 
 	setModule(module);
 
-	rack::Panel* mainPanel = new rack::LightPanel();
+	auto* const mainPanel = new rack::SVGPanel();
 	mainPanel->box.size = box.size;
+	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/button_trigger.svg")));
 	addChild(mainPanel);
 
-	addParam(rack::createParam<rack::CKD6>(rack::Vec(Margin, Margin), module, ButtonTrigger::TRIGGER, 0.f, 1.f, 0.f));
+	addChild(rack::createScrew<rack::ScrewSilver>({0, 0}));
+	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 15, 0}));
+	addChild(rack::createScrew<rack::ScrewSilver>({0, box.size.y - 15}));
+	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 15, box.size.y - 15}));
 
-	rack::Vec pos(0, ButtonSize + Margin * 2.f);
+	addParam(Helpers::centerHorizontaly(rack::createParam<rack::CKD6>(rack::Vec(Margin, Top), module, ButtonTrigger::TRIGGER, 0.f, 1.f, 0.f), box.size.x));
+
+	rack::Vec pos(0, Top + 40.f);
 
 	for (auto i = 0u; i < ButtonTrigger::NUM_OUTPUTS; ++i)
 	{
-		addOutput(rack::createOutput<rack::PJ3410Port>(pos, module, i));
+		addOutput(Helpers::centerHorizontaly(rack::createOutput<rack::PJ3410Port>(pos, module, i), box.size.x));
 		pos.y += ButtonSize + Margin;
 	}
 }

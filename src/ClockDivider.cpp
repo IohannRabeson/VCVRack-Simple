@@ -14,7 +14,7 @@ namespace
 	{
 	public:
 		explicit ClockDividerImp(unsigned int index, unsigned int limit = 1u) :
-			m_lightPulse(4096u),
+			m_lightPulse(0.2f),
 			m_index(index),
 			m_limit(limit)
 		{
@@ -181,7 +181,7 @@ struct ClockDividerKnob : rack::Davies1900hSmallBlackSnapKnob
 private:
 	std::string formatCurrentValue()const
 	{
-		return "1 / " + std::to_string(static_cast<unsigned int>(value));
+		return "/" + std::to_string(static_cast<unsigned int>(value));
 	}
 private:
 	rack::Label* linkedLabel = nullptr;
@@ -228,7 +228,7 @@ ClockDividerWidget::ClockDividerWidget()
 	auto* const mainPanel = new rack::SVGPanel;
 
 	mainPanel->box.size = box.size;
-	mainPanel->setBackground(rack::SVG::load("plugins/VCVRack-Simple/res/clock_divider.svg"));
+	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/clock_divider.svg")));
 	addChild(mainPanel);
 
 	addChild(rack::createScrew<rack::ScrewSilver>({15, 0}));
