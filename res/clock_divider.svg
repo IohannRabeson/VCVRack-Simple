@@ -31,16 +31,22 @@
      inkscape:cy="190"
      inkscape:document-units="px"
      inkscape:current-layer="g875"
-     showgrid="false"
+     showgrid="true"
      units="px"
      inkscape:window-width="1358"
      inkscape:window-height="839"
-     inkscape:window-x="1"
-     inkscape:window-y="2"
+     inkscape:window-x="26"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:snap-others="false"
      inkscape:snap-nodes="false"
-     inkscape:snap-global="false" />
+     inkscape:snap-global="true"
+     showguides="true"
+     inkscape:snap-grids="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid11644" />
+  </sodipodi:namedview>
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -49,7 +55,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -157,7 +163,7 @@
        aria-label="Clock Divider"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.17499995px;line-height:125%;font-family:Tahoma;-inkscape-font-specification:'Tahoma Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458335px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="text865"
-       transform="translate(0,4.7625003)">
+       transform="translate(2.6315789e-7,5.0837197)">
       <path
          d="m 4.495763,4.1751294 q -0.6347588,0 -1.0080349,-0.3827501 Q 3.114452,3.4077344 3.114452,2.7123418 q 0,-0.6707601 0.3732761,-1.0686686 0.3751709,-0.3998033 1.0099297,-0.3998033 0.1686375,0 0.3031684,0.018948 0.134531,0.018948 0.2576932,0.053055 0.096635,0.028422 0.2103231,0.077687 0.1136881,0.049265 0.1837958,0.085266 V 2.1514803 H 5.3806358 Q 5.3294761,2.106005 5.2517892,2.0434765 5.1741023,1.9790532 5.0755726,1.9184196 4.9770429,1.8577859 4.8576703,1.8161002 4.7401926,1.7725198 4.611346,1.7725198 q -0.153479,0 -0.2823256,0.049265 -0.1269518,0.04737 -0.2425347,0.1667427 -0.106109,0.1080037 -0.1743219,0.2917996 -0.066318,0.1837958 -0.066318,0.4339097 0,0.2633776 0.070108,0.4433838 0.070108,0.1781115 0.1837959,0.28801 0.1098985,0.106109 0.2444295,0.153479 0.1364258,0.04737 0.2709568,0.04737 0.1402154,0 0.2671671,-0.045475 0.1269518,-0.04737 0.2141127,-0.1042141 0.09474,-0.058739 0.1667427,-0.1193726 0.072002,-0.060634 0.1250569,-0.1080037 h 0.064423 V 3.9325947 Q 5.3749514,3.9685959 5.2726321,4.015966 5.1703127,4.0614413 5.062309,4.0936529 4.9296728,4.1334437 4.8140899,4.1542866 4.6985069,4.1751294 4.495763,4.1751294 Z"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88055563px;font-family:Tahoma;-inkscape-font-specification:'Tahoma Bold';stroke-width:0.26458335px"
