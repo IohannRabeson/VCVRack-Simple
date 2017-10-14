@@ -71,7 +71,7 @@ ButtonTriggerWidget::ButtonTriggerWidget()
 
 	auto* const mainPanel = new rack::SVGPanel();
 	mainPanel->box.size = box.size;
-	mainPanel->setBackground(rack::SVG::load("plugins/VCVRack-Simple/res/button_trigger.svg"));
+	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/button_trigger.svg")));
 	addChild(mainPanel);
 
 	addChild(rack::createScrew<rack::ScrewSilver>({0, 0}));

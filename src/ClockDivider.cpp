@@ -228,7 +228,7 @@ ClockDividerWidget::ClockDividerWidget()
 	auto* const mainPanel = new rack::SVGPanel;
 
 	mainPanel->box.size = box.size;
-	mainPanel->setBackground(rack::SVG::load("plugins/VCVRack-Simple/res/clock_divider.svg"));
+	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/clock_divider.svg")));
 	addChild(mainPanel);
 
 	addChild(rack::createScrew<rack::ScrewSilver>({15, 0}));
