@@ -16,6 +16,7 @@ public:
 		input->module = this->module;
 		input->type = rack::Port::INPUT;
 		input->portId = inputId;
+		rack::ModuleWidget::addInput(input);
 		return input;
 	}
 
@@ -30,6 +31,7 @@ public:
 		output->module = module;
 		output->type = rack::Port::OUTPUT;
 		output->portId = outputId;
+		rack::ModuleWidget::addOutput(output);
 		return output;
 	}
 
