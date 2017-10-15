@@ -117,8 +117,8 @@ public:
 
 					WavWriter::Frame frame;
 
-					frame.samples[0u] = getInputValue(leftInput);
-					frame.samples[1u] = getInputValue(rightInput);
+					frame.samples[0u] = getInputValue(leftInput) / 10.f;
+					frame.samples[1u] = getInputValue(rightInput) / 10.f;
 					m_writer.push(frame);
 					if (m_writer.haveError())
 					{
