@@ -82,6 +82,10 @@ public:
 		rack::Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS)
 	{
 		m_stateMachine.addState(INITIAL_STATE, [this](StateMachine&){});
+		m_stateMachine.addStateBegin(INITIAL_STATE, [this]()
+				{
+					m_redLightControl.setState<LightControl::StateOff>();
+				});
 		m_stateMachine.addState(ARMED_STATE, [this](StateMachine& machine)
 				{
 					auto const& startStopInput = inputs[INPUT_START_STOP];
@@ -91,15 +95,15 @@ public:
 					if (m_armTrigger.process(armValue))
 					{
 						machine.change(INITIAL_STATE);
-						m_redLightControl.setState<LightControl::StateOff>();
-						m_armState = false;
 					}
 					if (m_startStopTrigger.process(startStopValue))
 					{
 						machine.change(RECORD_STATE);
-						m_redLightControl.setState<LightControl::StateOn>();
-						startRecording();
 					}
+				});
+		m_stateMachine.addStateBegin(ARMED_STATE, [this]()
+				{
+					m_redLightControl.setState<LightControl::StateBlink>(0.5f, false);
 				});
 		m_stateMachine.addState(RECORD_STATE, [this](StateMachine& machine)
 				{
@@ -111,8 +115,6 @@ public:
 					if (m_startStopTrigger.process(startStopValue))
 					{
 						machine.change(ARMED_STATE);
-						m_redLightControl.setState<LightControl::StateBlink>(0.5f, false);
-						stopRecording();
 					}
 
 					WavWriter::Frame frame;
@@ -127,6 +129,15 @@ public:
 						m_writer.clearError();
 					}
 				});
+		m_stateMachine.addStateBegin(RECORD_STATE, [this]()
+				{
+					startRecording();
+					m_redLightControl.setState<LightControl::StateOn>();
+				});
+		m_stateMachine.addStateEnd(RECORD_STATE, [this]()
+				{
+					stopRecording();
+				});
 		m_stateMachine.change(INITIAL_STATE);
 	}
 
@@ -134,13 +145,11 @@ public:
 	{
 		m_outputFilePath = path;
 		m_stateMachine.change(ARMED_STATE);
-		m_redLightControl.setState<LightControl::StateBlink>(0.5f, true);
-		m_armState = true;
 	}
 
 	bool isArmed()const
 	{
-		return m_armState;
+		return m_stateMachine.currentIndex() == ARMED_STATE;
 	}
 
 	bool isRecording()const
