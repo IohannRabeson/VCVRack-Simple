@@ -7,7 +7,10 @@ struct FreeDeleter
 {
 	void operator()(T* ptr)const
 	{
-		std::free(ptr);
+		if (ptr)
+		{
+			std::free(ptr);
+		}
 	}
 };
 

@@ -330,7 +330,13 @@ bool RecorderWidget::selectOutputFile()
 
 	if (path)
 	{
-		setOutputFilePath(path.get());
+		std::string pathStr{path.get()};
+
+		if (Path::extractExtension(pathStr).empty())
+		{
+			pathStr.append(".wav");
+		}
+		setOutputFilePath(pathStr);
 		result = true;
 	}
 	else
