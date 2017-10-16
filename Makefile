@@ -6,6 +6,7 @@ SOURCES = src/Simple.cpp			\
 		  utils/PulseGate.cpp		\
 		  utils/WavWriter.cpp		\
 		  utils/StateMachine.cpp	\
+		  utils/Path.cpp			\
 		  utils/write_wav.c
 
 FLAGS += -I"."

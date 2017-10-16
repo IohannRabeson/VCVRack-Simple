@@ -6,6 +6,8 @@
 #include <utils/ExtendedButton.hpp>
 #include <utils/LightControl.hpp>
 #include <utils/StateMachine.hpp>
+#include <utils/Memory.hpp>
+#include <utils/Path.hpp>
 
 #include <dsp/digital.hpp>
 #include <../ext/osdialog/osdialog.h>
@@ -15,14 +17,15 @@
 #include <array>
 #include <cmath>
 
+static constexpr std::size_t const VuMeterCount = 16u;
+
 class VuMeter
 {
 public:
-	static constexpr std::size_t const Count = 20u;
 
 	void setValue(float value)
 	{
-		auto const rounded = static_cast<std::size_t>(std::abs(value * static_cast<float>(Count) / 10.f));
+		auto const rounded = std::min(VuMeterCount, static_cast<std::size_t>(std::abs(value * static_cast<float>(VuMeterCount) / 10.f)));
 		auto i = 0u;
 
 		while (i < rounded)
@@ -39,10 +42,10 @@ public:
 
 	float* lightValue(std::size_t i)
 	{
-		return m_values.data() + (Count - 1u - i);
+		return m_values.data() + (VuMeterCount - 1u - i);
 	}
 private:
-	std::array<float, Count> m_values;
+	std::array<float, VuMeterCount> m_values;
 };
 
 class Recorder : public rack::Module
@@ -61,6 +64,7 @@ public:
 		PARAM_RECORD_ARM = 0,
 		PARAM_START_STOP,
 		PARAM_INPUT_VOLUME,
+		PARAM_SELECT_FILE,
 		NUM_PARAMS
 	};
 
@@ -81,7 +85,15 @@ public:
 	Recorder() :
 		rack::Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS)
 	{
-		m_stateMachine.addState(INITIAL_STATE, [this](StateMachine&){});
+		m_stateMachine.addState(INITIAL_STATE, [this](StateMachine& machine)
+				{
+					auto const armValue = params[PARAM_RECORD_ARM].value;
+
+					if (hasOutputFilePath() && m_armTrigger.process(armValue))
+					{
+						machine.change(ARMED_STATE);
+					}
+				});
 		m_stateMachine.addStateBegin(INITIAL_STATE, [this]()
 				{
 					m_redLightControl.setState<LightControl::StateOff>();
@@ -99,6 +111,7 @@ public:
 					if (m_startStopTrigger.process(startStopValue))
 					{
 						machine.change(RECORD_STATE);
+						outputs[OUTPUT_START_STOP].value = 1.f;
 					}
 				});
 		m_stateMachine.addStateBegin(ARMED_STATE, [this]()
@@ -114,7 +127,8 @@ public:
 
 					if (m_startStopTrigger.process(startStopValue))
 					{
-						machine.change(ARMED_STATE);
+						machine.change(INITIAL_STATE);
+						outputs[OUTPUT_START_STOP].value = 1.f;
 					}
 
 					WavWriter::Frame frame;
@@ -124,9 +138,10 @@ public:
 					m_writer.push(frame);
 					if (m_writer.haveError())
 					{
-						// TODO: error notification	
+						// TODO: error notification
 						std::cerr << "Recorder error: " << WavWriter::getErrorText(m_writer.error()) << std::endl;
 						m_writer.clearError();
+						machine.change(INITIAL_STATE);
 					}
 				});
 		m_stateMachine.addStateBegin(RECORD_STATE, [this]()
@@ -144,7 +159,11 @@ public:
 	void setOutputFilePath(std::string const& path)
 	{
 		m_outputFilePath = path;
-		m_stateMachine.change(ARMED_STATE);
+	}
+
+	bool hasOutputFilePath()const
+	{
+		return !m_outputFilePath.empty();
 	}
 
 	bool isArmed()const
@@ -160,13 +179,11 @@ public:
 	void startRecording()
 	{
 		m_writer.start(m_outputFilePath);
-		std::cout << "Start recording..." << std::endl;
 	}
 
 	void stopRecording()
 	{
 		m_writer.stop();
-		std::cout << "Stop recording..." << std::endl;
 	}
 
 	void onSampleRateChange() override
@@ -181,17 +198,20 @@ public:
 		auto const& leftInput = inputs[INPUT_LEFT_IN];
 		auto const& rightInput = inputs[INPUT_RIGHT_IN];
 
+		outputs[OUTPUT_START_STOP].value = 0.f;
 		m_stateMachine.step();
 		m_redLightControl.step();
 		m_vuMeterLeft = getInputValue(leftInput) / 10.f;
 		m_vuMeterRight = getInputValue(rightInput) / 10.f;
 		m_leftVuMeter.setValue(getInputValue(leftInput));
 		m_rightVuMeter.setValue(getInputValue(rightInput));
+		m_fileLight = m_outputFilePath.empty() ? 0.f : 1.f;
 	}
 
 	float* vuMeterLeft() { return &m_vuMeterLeft; }
 	float* vuMeterRight() { return &m_vuMeterRight; }
 	float* redLight() { return m_redLightControl.lightValue(); }
+	float* fileLight() { return &m_fileLight; }
 	VuMeter& leftVuMeter() { return m_leftVuMeter; }
 	VuMeter& rightVuMeter() { return m_rightVuMeter; }
 private:
@@ -203,9 +223,9 @@ private:
 	VuMeter m_leftVuMeter;
 	VuMeter m_rightVuMeter;
 	std::string m_outputFilePath;
-	bool m_armState = false;
 	float m_vuMeterLeft = 0.f;
 	float m_vuMeterRight = 0.f;
+	float m_fileLight = 0.f;
 };
 
 namespace Helpers
@@ -235,7 +255,8 @@ namespace Helpers
 }
 
 RecorderWidget::RecorderWidget() :
-	m_recorder(new Recorder)
+	m_recorder(new Recorder),
+	m_label(new rack::Label)
 {
 	static constexpr float const PortSize = 24.6146f;
 	static constexpr float const Spacing = 10.f;
@@ -256,31 +277,37 @@ RecorderWidget::RecorderWidget() :
 	setModule(m_recorder);
 	{
 		static constexpr float const Left = (Width - (PortSize * 2.f + Spacing)) / 2.f;
-		static constexpr float const Top = 315;
 
-		Helpers::addAudioInput<rack::PJ301MPort>(this, m_recorder, Recorder::INPUT_LEFT_IN, {Left, Top}, "L", m_recorder->vuMeterLeft());
-		Helpers::addAudioInput<rack::PJ301MPort>(this, m_recorder, Recorder::INPUT_RIGHT_IN, {Left + Spacing + PortSize, Top}, "R", m_recorder->vuMeterRight());
+		Helpers::addAudioInput<rack::PJ301MPort>(this, m_recorder, Recorder::INPUT_LEFT_IN, {Left, 315}, "L", m_recorder->vuMeterLeft());
+		Helpers::addAudioInput<rack::PJ301MPort>(this, m_recorder, Recorder::INPUT_RIGHT_IN, {Left + Spacing + PortSize, 315}, "R", m_recorder->vuMeterRight());
 	}
 
-	auto* const armButton = createParam<ExtendedButton<rack::LEDButton>>({10, 55}, Recorder::PARAM_RECORD_ARM, 0.f, 1.f, 0.f);
+	static constexpr float const Top = 90;
 
-	createParam<rack::LEDButton>({40, 55}, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f);
-	createInput<rack::PJ301MPort>({37, 80}, Recorder::INPUT_START_STOP);
-	createOutput<rack::PJ301MPort>({37, 110}, Recorder::OUTPUT_START_STOP);
+	auto* const selectFileButton = createParam<ExtendedButton<rack::LEDButton>>({10, Top - 30}, Recorder::PARAM_SELECT_FILE, 0.f, 1.f, 0.f);
 
-	armButton->setCallback(std::bind(&RecorderWidget::onArmButtonClicked, this));
+	createParam<rack::LEDButton>({10, Top}, Recorder::PARAM_RECORD_ARM, 0.f, 1.f, 0.f);
+	createParam<rack::LEDButton>({40, Top}, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f);
+	createInput<rack::PJ301MPort>({37, Top + 25}, Recorder::INPUT_START_STOP);
+	createOutput<rack::PJ301MPort>({37, Top + 55}, Recorder::OUTPUT_START_STOP);
 
+	m_label->text = "<none>";
+	m_label->box.pos.x = 22;
+	m_label->box.pos.y = Top - 32;
+	selectFileButton->setCallback(std::bind(&RecorderWidget::onSelectFileButtonClicked, this));
 
-	addChild(rack::createValueLight<rack::MediumLight<rack::RedValueLight>>(rack::Vec{68, 59}, m_recorder->redLight()));
+	addChild(rack::createValueLight<rack::SmallLight<rack::RedValueLight>>(rack::Vec{68, Top + 6}, m_recorder->redLight()));
+	addChild(rack::createValueLight<rack::TinyLight<rack::GreenValueLight>>(rack::Vec{16.5f, Top - 23.5f}, m_recorder->fileLight()));
+	addChild(m_label);
 
 	static constexpr float const SmallLightSize = 8.f;
 	static constexpr float const LeftLightPosX = (Width - (SmallLightSize * 2.f + 25.f)) / 2.f;
 	static constexpr float const RightLightPosX = Width - LeftLightPosX - 5.f;
 
-	float lightPosY = 150;
+	float lightPosY = 180;
 	auto& leftVuMeter = m_recorder->leftVuMeter();
 	auto& rightVuMeter = m_recorder->rightVuMeter();
-	for (auto i = 0u; i < VuMeter::Count; ++i)
+	for (auto i = 0u; i < VuMeterCount; ++i)
 	{
 		addChild(rack::createValueLight<rack::TinyLight<rack::RedValueLight>>(rack::Vec{LeftLightPosX, lightPosY}, leftVuMeter.lightValue(i)));
 		addChild(rack::createValueLight<rack::TinyLight<rack::RedValueLight>>(rack::Vec{RightLightPosX, lightPosY}, rightVuMeter.lightValue(i)));
@@ -288,7 +315,7 @@ RecorderWidget::RecorderWidget() :
 	}
 }
 
-void RecorderWidget::onArmButtonClicked()
+void RecorderWidget::onSelectFileButtonClicked()
 {
 	if (!m_recorder->isArmed())
 	{
@@ -298,14 +325,23 @@ void RecorderWidget::onArmButtonClicked()
 
 bool RecorderWidget::selectOutputFile()
 {
-	char* path = osdialog_file(OSDIALOG_SAVE, ".", "output.wav", nullptr);
+	std::unique_ptr<char[], FreeDeleter<char>> path{osdialog_file(OSDIALOG_SAVE, ".", "output.wav", nullptr)};
 	bool result = false;
 
 	if (path)
 	{
-		m_recorder->setOutputFilePath(path);
-		std::free(path);
+		setOutputFilePath(path.get());
 		result = true;
 	}
+	else
+	{
+		setOutputFilePath("<none>");
+	}
 	return result;
+}
+
+void RecorderWidget::setOutputFilePath(std::string const& outputFilePath)
+{
+	m_recorder->setOutputFilePath(outputFilePath);
+	m_label->text = Path::extractFileName(outputFilePath);
 }

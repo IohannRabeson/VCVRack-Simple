@@ -75,7 +75,6 @@ void WavWriter::run(std::string const outputFilePath)
 	}
 	else
 	{
-		std::cout << "Opening file '" << outputFilePath << "'" << std::endl;
 		m_running = true;
 	}
 	while (m_running)
@@ -102,7 +101,6 @@ void WavWriter::run(std::string const outputFilePath)
 		elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - currentTime);
 	}
 	Audio_WAV_CloseWriter(&writer);
-	std::cout << "Closing file '" << outputFilePath << "'" << std::endl;
 }
 
 void WavWriter::finishThread()

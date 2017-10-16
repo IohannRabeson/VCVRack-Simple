@@ -1,31 +1,37 @@
 #if!defined SIMPLE_HPP
 #define SIMPLE_HPP
 #include <rack.hpp>
+#include <widgets.hpp>
+
 #include <utils/ExtendedModuleWidget.hpp>
 
 extern rack::Plugin *plugin;
 
-struct ButtonTriggerWidget : rack::ModuleWidget
+class ButtonTriggerWidget : public rack::ModuleWidget
 {
+public:
 	ButtonTriggerWidget();
 };
 
-struct ClockDividerWidget : rack::ModuleWidget
+class ClockDividerWidget : public rack::ModuleWidget
 {
+public:
 	ClockDividerWidget();
 };
 
 class Recorder;
 
-struct RecorderWidget : ExtendedModuleWidget
+class RecorderWidget : public ExtendedModuleWidget
 {
+public:
 	RecorderWidget();
-
 private:
-	void onArmButtonClicked();
+	void onSelectFileButtonClicked();
 	bool selectOutputFile();
+	void setOutputFilePath(std::string const& outputFilePath);
 private:
 	Recorder* const m_recorder;
+	rack::Label* const m_label;
 };
 
 #endif
