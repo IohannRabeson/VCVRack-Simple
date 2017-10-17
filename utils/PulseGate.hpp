@@ -15,4 +15,34 @@ private:
 	bool m_pulse = false;
 };
 
+class Pulser
+{
+public:
+	explicit Pulser(float pulseDuration = 0.001f) :
+		m_gate(pulseDuration)
+	{
+	}
+
+	void trigger()
+	{
+		m_trigger = true;
+	}
+
+	void reset()
+	{
+		m_gate.reset();
+	}
+
+	bool step()
+	{
+		auto const result = m_gate.process(m_trigger);
+
+		m_trigger = false;
+		return result;
+	}
+private:
+	PulseGate m_gate;
+	bool m_trigger = false;
+};
+
 #endif
