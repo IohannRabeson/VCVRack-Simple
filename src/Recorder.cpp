@@ -343,6 +343,7 @@ bool RecorderWidget::selectOutputFile()
 	{
 		setOutputFilePath("<none>");
 	}
+	glfwFocusWindow(rack::gWindow);
 	return result;
 }
 
