@@ -17,7 +17,7 @@ void PulseGate::reset()
 
 bool PulseGate::process(bool gate)
 {
-	m_current += 1.f / static_cast<float>(rack::gSampleRate);
+	m_current += 1.f / static_cast<float>(rack::engineGetSampleRate());
 	if (gate)
 	{
 		m_current = 0.f;

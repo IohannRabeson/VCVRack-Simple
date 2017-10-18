@@ -35,7 +35,7 @@ LightControl::StateBlink::StateBlink(float blinkTime, bool initialLightState) :
 
 float LightControl::StateBlink::step()
 {
-	auto const timeStep = 1.f / rack::gSampleRate;
+	auto const timeStep = 1.f / rack::engineGetSampleRate();
 
 	m_timeCounter += timeStep;
 	if (m_timeCounter > m_blinkTime)

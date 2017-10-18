@@ -28,7 +28,7 @@ WavWriter::WavWriter()
 {
 	m_running = false;
 	// The buffer can store 1 seconds
-	m_buffer.reserve(rack::gSampleRate);
+	m_buffer.reserve(rack::engineGetSampleRate());
 }
 
 WavWriter::~WavWriter()
@@ -64,11 +64,11 @@ void WavWriter::run(std::string const outputFilePath)
 {
 	static std::chrono::milliseconds const WriteTimeInterval{250};
 	// The internal buffer can store 1 second of audio.
-	std::vector<short> buffer(rack::gSampleRate * ChannelCount, 0);
+	std::vector<short> buffer(rack::engineGetSampleRate() * ChannelCount, 0);
 	std::chrono::milliseconds elapsedTime{0u};
 	WAV_Writer writer;
 
-	if (Audio_WAV_OpenWriter(&writer, outputFilePath.c_str(), rack::gSampleRate, ChannelCount) < 0)
+	if (Audio_WAV_OpenWriter(&writer, outputFilePath.c_str(), rack::engineGetSampleRate(), ChannelCount) < 0)
 	{
 		m_error = Errors::UnableToOpenFile;
 		return;
