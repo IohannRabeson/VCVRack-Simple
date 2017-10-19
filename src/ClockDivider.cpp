@@ -114,12 +114,6 @@ struct ClockDivider : rack::Module
 		};
 	}
 
-	void reset()
-	{
-		std::for_each(m_clockDividers.begin(), m_clockDividers.end(),
-					  [](ClockDividerImp& imp) { imp.reset(); });
-	}
-
 	void step() override
 	{
 		auto const& inputClock = inputs.at(INPUT_CLOCK);
@@ -144,12 +138,13 @@ struct ClockDivider : rack::Module
 		return m_clockDividers[i].lightState();
 	}
 
-	void initialize() override
+	void reset() override final
 	{
-		reset();
+		std::for_each(m_clockDividers.begin(), m_clockDividers.end(),
+					  [](ClockDividerImp& imp) { imp.reset(); });
 	}
 
-	void randomize() override
+	void randomize() override final
 	{
 		reset();
 	}
