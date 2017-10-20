@@ -2,6 +2,8 @@ os:
  - osx
  - linux
 
+osx_image: xcode8.3
+
 language: cpp
 compiler:
  - clang
