@@ -1,6 +1,7 @@
 #include "Simple.hpp"
 #include <utils/PulseGate.hpp>
 #include <utils/Algorithm.hpp>
+#include <utils/SimpleHelpers.hpp>
 #include <dsp/digital.hpp>
 
 #include <array>
@@ -32,30 +33,17 @@ namespace
 
 		void process(bool const clockTrigger,
 					 std::vector<rack::Param> const& params,
-					 std::vector<rack::Output>& outputs)
-		{
-			auto const& diviserParam = params.at(m_index);
-			auto& output = outputs.at(m_index);
-			auto gate = false;
-			auto const value = static_cast<unsigned int>(diviserParam.value);
-
-			m_limit = clamp(value, MinDivider, MaxDivider);
-			if (clockTrigger)
-			{
-				++m_current;
-				if (m_current >= m_limit)
-				{
-					gate = true;
-					m_current = 0u;
-				}
-			}
-			output.value = gate ? 10.f : 0.f;
-			m_lightState = m_lightPulse.process(gate) ? 1.0 : 0.f;
-		}
+					 std::vector<rack::Input> const& inputs,
+					 std::vector<rack::Output>& outputs);
 
 		float* lightState()
 		{
 			return &m_lightState;
+		}
+	private:
+		float getModulationValue(rack::Param const& param, float modulation)const
+		{
+			return param.value * modulation * MaxDivider;
 		}
 	private:
 		PulseGate m_lightPulse;
@@ -63,6 +51,7 @@ namespace
 		unsigned int m_current = 0u;
 		unsigned int m_limit = 1u;
 		float m_lightState = 0.f;
+		float m_modulation = 1.f;
 	};
 }
 
@@ -78,6 +67,14 @@ struct ClockDivider : rack::Module
 		CLOCK_DIVIDER_5,
 		CLOCK_DIVIDER_6,
 		CLOCK_DIVIDER_7,
+		CLOCK_MOD_DIVIDER_0,
+		CLOCK_MOD_DIVIDER_1,
+		CLOCK_MOD_DIVIDER_2,
+		CLOCK_MOD_DIVIDER_3,
+		CLOCK_MOD_DIVIDER_4,
+		CLOCK_MOD_DIVIDER_5,
+		CLOCK_MOD_DIVIDER_6,
+		CLOCK_MOD_DIVIDER_7,
 		NUM_PARAMS
 	};
 
@@ -85,6 +82,14 @@ struct ClockDivider : rack::Module
 	{
 		INPUT_CLOCK,
 		INPUT_RESET,
+		INPUT_CLOCK_MOD_DIVIDER_0,
+		INPUT_CLOCK_MOD_DIVIDER_1,
+		INPUT_CLOCK_MOD_DIVIDER_2,
+		INPUT_CLOCK_MOD_DIVIDER_3,
+		INPUT_CLOCK_MOD_DIVIDER_4,
+		INPUT_CLOCK_MOD_DIVIDER_5,
+		INPUT_CLOCK_MOD_DIVIDER_6,
+		INPUT_CLOCK_MOD_DIVIDER_7,
 		NUM_INPUTS
 	};
 
@@ -129,7 +134,7 @@ struct ClockDivider : rack::Module
 		}
 		for (auto& divider : m_clockDividers)
 		{
-			divider.process(clockTick, params, outputs);
+			divider.process(clockTick, params, inputs, outputs);
 		}
 
 		outputs.at(OUTPUT_CLOCK).value = inputClock.value;
@@ -185,6 +190,32 @@ private:
 	rack::Label* linkedLabel = nullptr;
 };
 
+void ClockDividerImp::process(bool const clockTrigger,
+			 				  std::vector<rack::Param> const& params,
+							  std::vector<rack::Input> const& inputs,
+			 				  std::vector<rack::Output>& outputs)
+{
+	auto const& diviserParam = params.at(ClockDivider::CLOCK_DIVIDER_0 + m_index);
+	auto const& diviserModParam = params.at(ClockDivider::CLOCK_MOD_DIVIDER_0 + m_index);
+	auto const& diviserMod = inputs.at(ClockDivider::INPUT_CLOCK_MOD_DIVIDER_0 + m_index);
+	auto& output = outputs.at(m_index);
+	auto gate = false;
+	auto const value = clamp<float>(diviserParam.value + getModulationValue(diviserModParam, getInputValue(diviserMod)), MinDivider, MaxDivider);
+
+	m_limit = static_cast<unsigned int>(value);
+	if (clockTrigger)
+	{
+		++m_current;
+		if (m_current >= m_limit)
+		{
+			gate = true;
+			m_current = 0u;
+		}
+	}
+	output.value = gate ? 10.f : 0.f;
+	m_lightState = m_lightPulse.process(gate) ? 1.0 : 0.f;
+}
+
 namespace Helpers
 {
 	template <class InputPortClass>
@@ -202,8 +233,6 @@ namespace Helpers
 			labelWidget->box.pos.x += labelOffset;
 			labelWidget->text = label;
 			widget->addChild(labelWidget);
-
-//			position.y += labelWidget->box.size.y;
 		}
 
 		port->box.pos = position;
@@ -250,11 +279,21 @@ ClockDividerWidget::ClockDividerWidget()
 	{
 		auto* clockControl = createParam<ClockDividerKnob>(pos, ClockDivider::CLOCK_DIVIDER_0 + i, 1.f, MaxDivider, defaultDividerValue);
 
-		defaultDividerValue *= 2u;
-
 		pos.x += clockControl->box.size.x + Margin;
 
-		auto* const portWidget = rack::createOutput<rack::PJ301MPort>(pos, module, i);
+		auto modControl = pos;
+
+		modControl.y = pos.y + clockControl->box.size.y / 4.f;
+
+		auto* clockModControl = createParam<rack::RoundSmallBlackKnob>(modControl, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -1.f, 1.f, 0.f);
+
+		pos.x += clockModControl->box.size.x / 2.f + Margin;
+
+		auto* const inputPortWidget = createInput<rack::PJ301MPort>(pos, ClockDivider::INPUT_CLOCK_MOD_DIVIDER_0 + i);
+
+		pos.x += inputPortWidget->box.size.x + Margin;
+
+		auto* const outputPortWidget = createOutput<rack::PJ301MPort>(pos, i);
 
 		rack::Vec lightPos = pos;
 
@@ -263,14 +302,14 @@ ClockDividerWidget::ClockDividerWidget()
 
 		auto* const light = rack::createValueLight<rack::TinyLight<rack::RedValueLight>>(lightPos, module->lightState(i));
 
-		addOutput(portWidget);
 		addChild(light);
 
-		pos.x += portWidget->box.size.x;
+		pos.x += outputPortWidget->box.size.x;
 
 		auto* const textWidget = new rack::Label;
 
-		clockControl->box.size = portWidget->box.size;
+		clockControl->box.size = outputPortWidget->box.size;
+		clockModControl->box.size = outputPortWidget->box.size.mult(0.5f);
 		clockControl->connectLabel(textWidget);
 		textWidget->box.pos = pos;
 		textWidget->box.pos.y += 2;
@@ -279,6 +318,7 @@ ClockDividerWidget::ClockDividerWidget()
 
 		pos.x = left;
 		pos.y += 30;
+		defaultDividerValue *= 2u;
 	}
 	initialize();
 }
