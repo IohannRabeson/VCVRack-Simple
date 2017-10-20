@@ -2,6 +2,7 @@
 #define EXTENDEDBUTTON_HPP
 #include <type_traits>
 #include <dsp/digital.hpp>
+#include <functional>
 
 template <class T>
 class ExtendedButton : public T
