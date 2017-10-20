@@ -1,6 +1,14 @@
 # VCVRack-Simple [![Build Status](https://travis-ci.org/IohannRabeson/VCVRack-Simple.svg?branch=master)](https://travis-ci.org/IohannRabeson/VCVRack-Simple)
 My simple modules for [VCVRack](https://github.com/VCVRack/Rack) (dev version).
 
+## Build
+
+### Linux
+Compilation is tested on Linux with Clang-5.0 and Gcc-7.
+
+### Osx
+Compilation is tested on Osx with Clang (xcode 8.3).
+
 ## Modules
 
  - Clock divider  

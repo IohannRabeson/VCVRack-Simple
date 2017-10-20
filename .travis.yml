@@ -15,6 +15,7 @@ matrix:
       addons:
          apt:
            sources:
+             - ubuntu-toolchain-r-test
              - llvm-toolchain-trusty-5.0
            packages:
              - clang-5.0
@@ -23,7 +24,7 @@ matrix:
     - os: osx
       osx_image: xcode8.3
       env:
-        - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="rm -fr /usr/local/include/c++ && brew update && brew install gcc && CC=gcc-7 && CXX=g++-7"
     - os: osx
       osx_image: xcode8.3
 
