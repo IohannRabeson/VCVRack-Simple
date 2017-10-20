@@ -13,7 +13,7 @@ public:
 	ButtonTriggerWidget();
 };
 
-class ClockDividerWidget : public rack::ModuleWidget
+class ClockDividerWidget : public ExtendedModuleWidget
 {
 public:
 	ClockDividerWidget();

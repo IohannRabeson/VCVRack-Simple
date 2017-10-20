@@ -1,5 +1,6 @@
 #include "Simple.hpp"
 #include <utils/PulseGate.hpp>
+#include <utils/Algorithm.hpp>
 #include <dsp/digital.hpp>
 
 #include <array>
@@ -8,6 +9,7 @@
 
 namespace
 {
+	static constexpr unsigned int const MinDivider = 1u;
 	static constexpr unsigned int const MaxDivider = 128u;
 
 	class ClockDividerImp
@@ -32,11 +34,12 @@ namespace
 					 std::vector<rack::Param> const& params,
 					 std::vector<rack::Output>& outputs)
 		{
-			auto const& param = params.at(m_index);
+			auto const& diviserParam = params.at(m_index);
 			auto& output = outputs.at(m_index);
 			auto gate = false;
+			auto const value = static_cast<unsigned int>(diviserParam.value);
 
-			m_limit = static_cast<unsigned int>(param.value);
+			m_limit = clamp(value, MinDivider, MaxDivider);
 			if (clockTrigger)
 			{
 				++m_current;
@@ -216,7 +219,7 @@ ClockDividerWidget::ClockDividerWidget()
 
 	auto* const module = new ClockDivider;
 
-	box.size = rack::Vec(15 * 8, 380);
+	box.size = rack::Vec(15 * 10, 380);
 
 	setModule(module);
 
@@ -245,10 +248,9 @@ ClockDividerWidget::ClockDividerWidget()
 	// Setup clock outputs port and controls
 	for (auto i = 0u; i < 8u; ++i)
 	{
-		auto* clockControl = dynamic_cast<ClockDividerKnob*>(rack::createParam<ClockDividerKnob>(pos, module, ClockDivider::OUTPUT_CLOCK_0 + i, 1.f, MaxDivider, defaultDividerValue));
+		auto* clockControl = createParam<ClockDividerKnob>(pos, ClockDivider::CLOCK_DIVIDER_0 + i, 1.f, MaxDivider, defaultDividerValue);
 
 		defaultDividerValue *= 2u;
-		addParam(clockControl);
 
 		pos.x += clockControl->box.size.x + Margin;
 
