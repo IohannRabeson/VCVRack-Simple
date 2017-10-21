@@ -9,9 +9,22 @@ SOURCES = src/Simple.cpp			\
 		  utils/Path.cpp			\
 		  utils/write_wav.c
 
+
 FLAGS += -I"."
 
 include ../../plugin.mk
+
+ifeq ($(ARCH), lin)
+	LDFLAGS += -L../../dep/lib -lglfw
+endif
+
+ifeq ($(ARCH), mac)
+	LDFLAGS += -L../../dep/lib -lglfw
+endif
+
+ifeq ($(ARCH), win)
+	LDFLAGS += -L../../dep/lib -lglfw3dll
+endif
 
 dist: all
 	mkdir -p dist/VCVRack-Simple
