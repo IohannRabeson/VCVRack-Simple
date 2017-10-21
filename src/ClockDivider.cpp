@@ -279,13 +279,14 @@ ClockDividerWidget::ClockDividerWidget()
 	{
 		auto* clockControl = createParam<ClockDividerKnob>(pos, ClockDivider::CLOCK_DIVIDER_0 + i, 1.f, MaxDivider, defaultDividerValue);
 
+		clockControl->snap = true;
 		pos.x += clockControl->box.size.x + Margin;
 
-		auto modControl = pos;
+		auto modControlPos = pos;
 
-		modControl.y = pos.y + clockControl->box.size.y / 4.f;
+		modControlPos.y = pos.y + clockControl->box.size.y / 4.f;
 
-		auto* clockModControl = createParam<rack::RoundSmallBlackKnob>(modControl, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -1.f, 1.f, 0.f);
+		auto* clockModControl = createParam<rack::RoundSmallBlackKnob>(modControlPos, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -1.f, 1.f, 0.f);
 
 		pos.x += clockModControl->box.size.x / 2.f + Margin;
 
