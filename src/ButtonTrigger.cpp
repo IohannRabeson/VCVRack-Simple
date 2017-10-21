@@ -24,7 +24,7 @@ struct ButtonTrigger : rack::Module
 
 	ButtonTrigger() : Module(NUM_PARAMS, 0u, NUM_OUTPUTS){}
 
-	void step();
+	void step() override;
 
 private:
 	rack::SchmittTrigger m_buttonTrigger;
