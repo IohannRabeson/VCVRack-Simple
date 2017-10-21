@@ -3,6 +3,7 @@
 #include <memory>
 #include <map>
 #include <limits>
+#include <functional>
 
 #include <rack.hpp>
 
