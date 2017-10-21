@@ -265,11 +265,17 @@ ClockDividerWidget::ClockDividerWidget()
 	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, box.size.y - 15}));
 
 	// Setup input ports
-	addInput(rack::createInput<rack::PJ301MPort>({30, 45}, module, ClockDivider::INPUT_RESET));
-	addOutput(rack::createOutput<rack::PJ301MPort>({30, 90}, module, ClockDivider::OUTPUT_RESET));
+	auto* inputReset = createInput<rack::PJ301MPort>({0, 45}, ClockDivider::INPUT_RESET);
+	auto* outputReset = createOutput<rack::PJ301MPort>({0, 90}, ClockDivider::OUTPUT_RESET);
 
-	addInput(rack::createInput<rack::PJ301MPort>({70, 45}, module, ClockDivider::INPUT_CLOCK));
-	addOutput(rack::createOutput<rack::PJ301MPort>({70, 90}, module, ClockDivider::OUTPUT_CLOCK));
+	auto* inputClock = createInput<rack::PJ301MPort>({0, 45}, ClockDivider::INPUT_CLOCK);
+	auto* outputClock = createOutput<rack::PJ301MPort>({0, 90}, ClockDivider::OUTPUT_CLOCK);
+
+	auto const horMargin = (mainPanel->box.size.x - (inputReset->box.size.x + inputClock->box.size.x + 15)) / 2.f;
+	inputReset->box.pos.x = horMargin;
+	outputReset->box.pos.x = horMargin;
+	inputClock->box.pos.x = mainPanel->box.size.x - inputClock->box.size.x - horMargin;
+	outputClock->box.pos.x = mainPanel->box.size.x - outputClock->box.size.x - horMargin;
 
 	auto defaultDividerValue = 1u;
 	auto const left = 10;
