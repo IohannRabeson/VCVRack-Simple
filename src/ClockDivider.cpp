@@ -6,12 +6,13 @@
 
 #include <array>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 namespace
 {
-	static constexpr unsigned int const MinDivider = 1u;
-	static constexpr unsigned int const MaxDivider = 128u;
+	static constexpr int const MinDivider = 1u;
+	static constexpr int const MaxDivider = 128u;
 
 	class ClockDividerImp
 	{
@@ -43,7 +44,7 @@ namespace
 	private:
 		float getModulationValue(rack::Param const& param, float modulation)const
 		{
-			return param.value * modulation * MaxDivider;
+			return param.value * std::floor(modulation) / 10.f;
 		}
 	private:
 		PulseGate m_lightPulse;
@@ -286,8 +287,9 @@ ClockDividerWidget::ClockDividerWidget()
 
 		modControlPos.y = pos.y + clockControl->box.size.y / 4.f;
 
-		auto* clockModControl = createParam<rack::RoundSmallBlackKnob>(modControlPos, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -1.f, 1.f, 0.f);
+		auto* clockModControl = createParam<rack::RoundSmallBlackKnob>(modControlPos, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -MaxDivider, MaxDivider, 0.f);
 
+		clockModControl->snap = true;
 		pos.x += clockModControl->box.size.x / 2.f + Margin;
 
 		auto* const inputPortWidget = createInput<rack::PJ301MPort>(pos, ClockDivider::INPUT_CLOCK_MOD_DIVIDER_0 + i);
