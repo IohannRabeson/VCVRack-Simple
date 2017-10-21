@@ -1,5 +1,7 @@
 #include "Path.hpp"
 
+#include <iostream>
+
 std::string Path::extractFileName(std::string const& path)
 {
 	auto lastSlashPos = path.find_last_of("\\/");
@@ -45,6 +47,10 @@ std::string Path::extractExtension(std::string const& path)
 	if (lastDotPos != std::string::npos)
 	{
 		lastDotPos += 1;
+	}
+	else
+	{
+		lastDotPos = path.size();
 	}
 	return path.substr(lastDotPos);
 }
