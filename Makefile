@@ -1,12 +1,14 @@
-SOURCES = src/Simple.cpp			\
-		  src/ClockDivider.cpp		\
-		  src/ButtonTrigger.cpp		\
-		  src/Recorder.cpp			\
-		  utils/LightControl.cpp	\
-		  utils/PulseGate.cpp		\
-		  utils/WavWriter.cpp		\
-		  utils/StateMachine.cpp	\
-		  utils/Path.cpp			\
+SOURCES = src/Simple.cpp					\
+		  src/ClockDivider.cpp				\
+		  src/ButtonTrigger.cpp				\
+		  src/Recorder.cpp					\
+		  src/Clock.cpp						\
+		  utils/LightControl.cpp			\
+		  utils/PulseGate.cpp				\
+		  utils/WavWriter.cpp				\
+		  utils/StateMachine.cpp			\
+		  utils/Path.cpp					\
+		  utils/FourteenSegmentDisplay.cpp	\
 		  utils/write_wav.c
 
 

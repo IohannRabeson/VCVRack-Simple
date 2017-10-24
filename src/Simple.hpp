@@ -34,4 +34,10 @@ private:
 	rack::Label* const m_label;
 };
 
+class ClockWidget : public ExtendedModuleWidget
+{
+public:
+	ClockWidget();
+};
+
 #endif
