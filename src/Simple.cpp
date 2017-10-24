@@ -5,11 +5,12 @@ rack::Plugin* plugin;
 void init(rack::Plugin *p)
 {
 	plugin = p;
-	plugin->slug = "Simple";
-	plugin->name = "Simple";
-	plugin->homepageUrl = "https://github.com/IohannRabeson/VCVRack-Simple";
+	plugin->slug = "IO-Simple";
 
-	rack::createModel<ButtonTriggerWidget>(plugin, "IO-ButtonTrigger", "Button Trigger");
-	rack::createModel<ClockDividerWidget>(plugin, "IO-ClockDivider", "Clock Divider");
-	rack::createModel<RecorderWidget>(plugin, "IO-Recorder", "Recorder");
+#ifdef VERSION
+	p->version = TOSTRING(VERSION);
+#endif
+	p->addModel(rack::createModel<ButtonTriggerWidget>("IO-Simple", "Simple", "IO-ButtonTrigger", "Button Trigger"));
+	p->addModel(rack::createModel<ClockDividerWidget>("IO-Simple", "Simple", "IO-ClockDivider", "Clock Divider"));
+	p->addModel(rack::createModel<RecorderWidget>("IO-Simple", "Simple", "IO-Recorder", "Recorder"));
 }

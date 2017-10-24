@@ -1,3 +1,5 @@
+DIST_NAME=VCVRack-Simple
+
 SOURCES = src/Simple.cpp			\
 		  src/ClockDivider.cpp		\
 		  src/ButtonTrigger.cpp		\
@@ -27,7 +29,11 @@ ifeq ($(ARCH), win)
 endif
 
 dist: all
-	mkdir -p dist/VCVRack-Simple
-	cp LICENSE* dist/VCVRack-Simple/
-	cp plugin.* dist/VCVRack-Simple/
-	cp -R res dist/VCVRack-Simple/
+ifndef VERSION
+	$(error VERSION must be defined when making distributables)
+endif
+	mkdir -p dist/$(DIST_NAME)
+	cp LICENSE* dist/$(DIST_NAME)/
+	cp $(TARGET) dist/$(DIST_NAME)/
+	cp -R res dist/$(DIST_NAME)/
+	cd dist && zip -5 -r $(DIST_NAME)-$(VERSION)-$(ARCH).zip $(DIST_NAME)
