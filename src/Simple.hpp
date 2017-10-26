@@ -34,10 +34,19 @@ private:
 	rack::Label* const m_label;
 };
 
+class Clock;
+class FourteenSegmentDisplay;
+
 class ClockWidget : public ExtendedModuleWidget
 {
 public:
 	ClockWidget();
+
+	void step() override;
+private:
+	Clock* const m_clock;
+	FourteenSegmentDisplay* const m_segmentDisplay;
+
 };
 
 #endif

@@ -13,7 +13,7 @@ private:
 	std::shared_ptr<rack::Font> const m_font;
 	std::size_t const m_maxCharacters;
 	std::string m_displayedText;
-	float m_size = 20.f;
+	float m_fontSize = 20.f;
 	NVGcolor m_onColor = nvgRGB(0, 0x0, 0);
 	NVGcolor m_offColor = nvgRGB(0xFF, 0x0, 0x0);
 };

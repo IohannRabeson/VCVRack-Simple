@@ -85,7 +85,7 @@ void WavWriter::run(std::string const outputFilePath)
 		auto const frameCount = m_buffer.size();
 		auto const sampleCount = frameCount * ChannelCount;
 
-		if( sampleCount > buffer.size())
+		if(sampleCount > buffer.size())
 		{
 			m_running = false;
 			m_error = Errors::BufferOverflow;
