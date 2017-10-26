@@ -145,8 +145,8 @@ ClockWidget::ClockWidget() :
 	auto const Margin = 5.f;
 
 	box.size = rack::Vec(15 * 6, 380);
-	m_segmentDisplay->box.pos = {Margin + 25.f, Margin};
-	m_segmentDisplay->box.size = {15 * 6 - Margin - 25.f, 20.f};
+	m_segmentDisplay->box.pos = {15.f, 5.f};
+	m_segmentDisplay->box.size = {15 * 6 - Margin - 25.f, 25.f};
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 	addChild(m_segmentDisplay);
