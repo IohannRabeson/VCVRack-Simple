@@ -4,6 +4,8 @@
 #include <queue>
 #include <stack>
 #include <string>
+#include <functional>
+#include <memory>
 
 class FiniteStateMachine
 {
