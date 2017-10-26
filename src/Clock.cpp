@@ -145,14 +145,14 @@ ClockWidget::ClockWidget() :
 	auto const Margin = 5.f;
 
 	box.size = rack::Vec(15 * 6, 380);
-	m_segmentDisplay->box.pos = {15.f, 5.f};
+	m_segmentDisplay->box.pos = {25.f, 5.f};
 	m_segmentDisplay->box.size = {15 * 6 - Margin - 25.f, 25.f};
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 	addChild(m_segmentDisplay);
 	setModule(m_clock);
 
-	auto* const button = createParam<rack::LEDButton>({0.f, 0.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
+	auto* const button = createParam<rack::LEDButton>({5.f, 8.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
 }
 
 void ClockWidget::step()
