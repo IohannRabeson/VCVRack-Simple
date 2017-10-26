@@ -75,6 +75,6 @@ void FourteenSegmentDisplay::draw(NVGcontext* vg)
 	nvgRestore(vg);
 	nvgFillColor(vg, nvgRGBA(220,220,220,160));
 	nvgFontSize(vg, 25.0f);
-	nvgText(vg, box.pos.x, box.pos.y, m_displayedText, nullptr);
+	nvgText(vg, box.pos.x, box.pos.y, m_displayedText.c_str(), nullptr);
 	nvgRestore(vg);
 }
