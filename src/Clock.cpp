@@ -24,15 +24,21 @@ public:
 
 	enum OutputIds
 	{
+		OUTPUT_MAIN_CLOCK,
 		NUM_OUTPUTS
 	};
 
-	Clock() :
-		rack::Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS),
-		m_interval(OneSecond)
+	enum LightIds
 	{
-		restart();
-	}
+		NUM_LIGHTS
+	};
+
+	enum StateIds : unsigned int
+	{
+		STATE_FREQUENCY
+	};
+
+	Clock();
 
 	void restart()
 	{
@@ -41,26 +47,7 @@ public:
 		m_value = 0u;
 	}
 
-	void step() override
-	{
-		m_machine.step();
-
-		auto const currentTime = std::chrono::steady_clock::now();
-		auto const elaspedTime = currentTime - m_lastTime;
-
-		m_lastTime = currentTime;
-		m_current += elaspedTime;
-		if (m_current >= m_interval)
-		{
-			m_current = std::min(std::chrono::nanoseconds{0}, m_current - m_interval);
-			m_clockTrigger = true;
-			++m_value;
-		}
-		else
-		{
-			m_clockTrigger = false;
-		}
-	}
+	void step() override;
 
 	unsigned int getValue()const
 	{
@@ -137,10 +124,47 @@ private:
 	std::chrono::seconds m_maxInterval{60};
 };
 
+Clock::Clock() :
+	rack::Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS),
+	m_interval(OneSecond)
+{
+	m_machine.registerStateType<ChangeFrequencyState>(Clock::STATE_FREQUENCY);
+	m_machine.change(Clock::STATE_FREQUENCY);
+	restart();
+}
+
+void Clock::step()
+{
+	m_machine.step();
+
+	auto const currentTime = std::chrono::steady_clock::now();
+	auto const elaspedTime = currentTime - m_lastTime;
+
+	m_lastTime = currentTime;
+	m_current += elaspedTime;
+	if (m_current >= m_interval)
+	{
+		m_current = std::min(std::chrono::nanoseconds{0}, m_current - m_interval);
+		m_clockTrigger = true;
+		++m_value;
+	}
+	else
+	{
+		m_clockTrigger = false;
+	}
+	outputs.at(OUTPUT_MAIN_CLOCK).value = m_clockTrigger ? 1.f : 0.f;
+
+	auto& currentState = static_cast<Clock::ClockState&>(m_machine.currentState());
+	auto const currentValue = params.at(Clock::PARAM_CHANGE_MODE).value;
+
+	currentState.onValueChanged(currentValue);
+}
 ClockWidget::ClockWidget() :
 	m_clock(new Clock),
 	m_segmentDisplay(new FourteenSegmentDisplay)
 {
+	setModule(m_clock);
+
 	auto* const mainPanel = new rack::LightPanel;
 	auto const Margin = 5.f;
 
@@ -150,7 +174,12 @@ ClockWidget::ClockWidget() :
 	mainPanel->box.size = box.size;
 	addChild(mainPanel);
 	addChild(m_segmentDisplay);
-	setModule(m_clock);
+
+	auto* port = createOutput<rack::PJ301MPort>({}, Clock::OUTPUT_MAIN_CLOCK);
+	auto* knob = createParam<rack::RoundSmallBlackKnob>({}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.5f);
+
+	port->box.pos.x = (15.f * 6.f - port->box.size.x) / 2.f;
+	port->box.pos.y = 50.f;
 
 	auto* const button = createParam<rack::LEDButton>({5.f, 8.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
 }

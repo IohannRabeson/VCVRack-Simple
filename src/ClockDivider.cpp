@@ -9,6 +9,8 @@
 #include <cmath>
 #include <iostream>
 
+struct ClockDivider;
+
 namespace
 {
 	static constexpr int const MinDivider = 1u;
@@ -32,15 +34,7 @@ namespace
 			m_lightPulse.reset();
 		}
 
-		void process(bool const clockTrigger,
-					 std::vector<rack::Param> const& params,
-					 std::vector<rack::Input> const& inputs,
-					 std::vector<rack::Output>& outputs);
-
-		float* lightState()
-		{
-			return &m_lightState;
-		}
+		void process(bool const clockTrigger, ClockDivider& module);
 	private:
 		float getModulationValue(rack::Param const& param, float modulation)const
 		{
@@ -51,7 +45,6 @@ namespace
 		unsigned int const m_index;
 		unsigned int m_current = 0u;
 		unsigned int m_limit = 1u;
-		float m_lightState = 0.f;
 		float m_modulation = 1.f;
 	};
 }
@@ -112,7 +105,7 @@ struct ClockDivider : rack::Module
 	static constexpr unsigned int const ClockDividerCount = 8u;
 
 	ClockDivider() :
-		Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS)
+		Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, 8u)
 	{
 		auto initClockDivider = 1u;
 
@@ -135,16 +128,11 @@ struct ClockDivider : rack::Module
 		}
 		for (auto& divider : m_clockDividers)
 		{
-			divider.process(clockTick, params, inputs, outputs);
+			divider.process(clockTick, *this);
 		}
 
 		outputs.at(OUTPUT_CLOCK).value = inputClock.value;
 		outputs.at(OUTPUT_RESET).value = inputReset.value;
-	}
-
-	float* lightState(std::size_t const i)
-	{
-		return m_clockDividers[i].lightState();
 	}
 
 	void reset() override final
@@ -191,15 +179,13 @@ private:
 	rack::Label* linkedLabel = nullptr;
 };
 
-void ClockDividerImp::process(bool const clockTrigger,
-			 				  std::vector<rack::Param> const& params,
-							  std::vector<rack::Input> const& inputs,
-			 				  std::vector<rack::Output>& outputs)
+void ClockDividerImp::process(bool const clockTrigger, ClockDivider& module)
 {
-	auto const& diviserParam = params.at(ClockDivider::CLOCK_DIVIDER_0 + m_index);
-	auto const& diviserModParam = params.at(ClockDivider::CLOCK_MOD_DIVIDER_0 + m_index);
-	auto const& diviserMod = inputs.at(ClockDivider::INPUT_CLOCK_MOD_DIVIDER_0 + m_index);
-	auto& output = outputs.at(m_index);
+	auto const& diviserParam = module.params.at(ClockDivider::CLOCK_DIVIDER_0 + m_index);
+	auto const& diviserModParam = module.params.at(ClockDivider::CLOCK_MOD_DIVIDER_0 + m_index);
+	auto const& diviserMod = module.inputs.at(ClockDivider::INPUT_CLOCK_MOD_DIVIDER_0 + m_index);
+	auto& output = module.outputs.at(m_index);
+	auto& light = module.lights.at(m_index);
 	auto gate = false;
 	auto const value = clamp<float>(diviserParam.value + getModulationValue(diviserModParam, getInputValue(diviserMod)), MinDivider, MaxDivider);
 
@@ -214,7 +200,7 @@ void ClockDividerImp::process(bool const clockTrigger,
 		}
 	}
 	output.value = gate ? 10.f : 0.f;
-	m_lightState = m_lightPulse.process(gate) ? 1.0 : 0.f;
+	light.value = m_lightPulse.process(gate) ? 1.0 : 0.0;
 }
 
 namespace Helpers
@@ -309,9 +295,7 @@ ClockDividerWidget::ClockDividerWidget()
 		lightPos.x += 20.f;
 		lightPos.y += 2.f;
 
-		auto* const light = rack::createValueLight<rack::TinyLight<rack::RedValueLight>>(lightPos, module->lightState(i));
-
-		addChild(light);
+		createLight<rack::SmallLight<rack::RedLight>>(lightPos, i);
 
 		pos.x += outputPortWidget->box.size.x;
 
@@ -321,6 +305,7 @@ ClockDividerWidget::ClockDividerWidget()
 		clockModControl->box.size = outputPortWidget->box.size.mult(0.5f);
 		clockControl->connectLabel(textWidget);
 		textWidget->box.pos = pos;
+		textWidget->box.pos.x += -3;
 		textWidget->box.pos.y += 2;
 
 		addChild(textWidget);

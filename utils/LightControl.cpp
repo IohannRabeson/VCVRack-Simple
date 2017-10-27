@@ -11,9 +11,9 @@ void LightControl::step()
 	m_currentValue = m_currentState->step();
 }
 
-float* LightControl::lightValue()
+float LightControl::lightValue()const
 {
-	return &m_currentValue;
+	return m_currentValue;
 }
 
 float LightControl::StateOff::step()
