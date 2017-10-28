@@ -1,5 +1,5 @@
 # Modules documentation
 
-- [Clock divider](docs/modules/clock_divider)
-- [Recorder](docs/modules/recorder)
-- [Button trigger](docs/modules/button_trigger)
+- [Clock divider](clock_divider)
+- [Recorder](recorder)
+- [Button trigger](button_trigger)
