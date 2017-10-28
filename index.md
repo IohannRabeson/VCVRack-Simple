@@ -1,5 +1,3 @@
-## Modules
-
 <p align="center">
 <a href="docs/modules/clock_divider"><img src="screenshots/clock_divider.png" alt="Clock divider image"></a>
 <a href="docs/modules/recorder"><img src="screenshots/recorder.png" alt="Wav Recorder"></a>
@@ -8,7 +6,7 @@
 
 ## Documentation
 
-[Module manuals](docs/modules/modules_index)
+[Modules manuals](docs/modules/modules_index)
 
 ## Issue tracker
 
