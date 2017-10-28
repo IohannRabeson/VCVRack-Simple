@@ -1,4 +1,4 @@
-# Simple module pack
+ Simple module pack
 
 ## Modules
 
@@ -8,7 +8,7 @@
 
 ## Documentation
 
-[Module manuals](docs/modules/module_index)
+[Module manuals](docs/modules/modules_index)
 
 ## Issue tracker
 
