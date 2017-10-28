@@ -1,10 +1,11 @@
 # [VCVRack-Simple](https://iohannrabeson.github.io/VCVRack-Simple/) [![Build Status](https://travis-ci.org/IohannRabeson/VCVRack-Simple.svg?branch=master)](https://travis-ci.org/IohannRabeson/VCVRack-Simple)
 Modules for [VCVRack](https://github.com/VCVRack/Rack).
 
-## [Modules](https://iohannrabeson.github.io/VCVRack-Simple/docs/modules/modules_index)
-![clock_divider_screenshot](screenshots/clock_divider.png)
-![button_trigger_screenshot](screenshots/button_trigger.png)
-![recorded_trigger_screenshot](screenshots/recorder.png)
+<p align="center">
+<a href="docs/modules/clock_divider"><img src="screenshots/clock_divider.png" alt="Clock divider image"></a>
+<a href="docs/modules/recorder"><img src="screenshots/recorder.png" alt="Wav Recorder"></a>
+<a href="docs/modules/button_trigger"><img src="screenshots/button_trigger.png" alt="Button trigger image"></a>
+</p>
 
 ## Build from sources
 ### Linux
