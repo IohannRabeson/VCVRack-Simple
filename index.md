@@ -1,9 +1,9 @@
 ## Modules
 
 <p align="center">
-[![clock_divider_screenshot](screenshots/clock_divider.png)](docs/modules/clock_divider)
-[![button_trigger_screenshot](screenshots/button_trigger.png)](docs/modules/button_trigger)
-[![recorded_trigger_screenshot](screenshots/recorder.png)](docs/modules/recorder)
+<a href="docs/modules/clock_divider"><img src="screenshots/clock_divider.png" alt="Clock divider image"></a>
+<a href="docs/modules/recorder"><img src="screenshots/recorder.png" alt="Wav Recorder"></a>
+<a href="docs/modules/button_trigger"><img src="screenshots/button_trigger.png" alt="Button trigger image"></a>
 </p>
 
 ## Documentation
