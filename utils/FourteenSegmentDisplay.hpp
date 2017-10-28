@@ -5,9 +5,10 @@
 class FourteenSegmentDisplay : public rack::Widget
 {
 public:
-	explicit FourteenSegmentDisplay(std::size_t maxCharacters = 2);
+	explicit FourteenSegmentDisplay(std::size_t const maxCharacters = 2u);
 
 	void setText(std::string const& text);
+	void setFontSize(float const size);
 	void draw(NVGcontext* vg) override;
 private:
 	std::shared_ptr<rack::Font> const m_font;

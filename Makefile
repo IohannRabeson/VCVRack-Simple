@@ -5,7 +5,7 @@ SOURCES = src/Simple.cpp					\
 		  src/ButtonTrigger.cpp				\
 		  src/Recorder.cpp					\
 		  src/Clock.cpp						\
-		  utils/FiniteStateMachine.cpp		\
+		  src/ClockWidget.cpp				\
 		  utils/LightControl.cpp			\
 		  utils/PulseGate.cpp				\
 		  utils/WavWriter.cpp				\

@@ -1,140 +1,41 @@
-#include "Simple.hpp"
-#include <utils/FourteenSegmentDisplay.hpp>
-#include <utils/FiniteStateMachine.hpp>
-
-
-class Clock : public rack::Module
-{
-public:
-	static std::chrono::nanoseconds const OneSecond;
-	class ClockState;
-	class ChangeFrequencyState;
-	class ChangeRatioState;
-
-	enum InputIds
-	{
-		NUM_INPUTS
-	};
-
-	enum ParamIds
-	{
-		PARAM_CHANGE_MODE,
-		NUM_PARAMS
-	};
-
-	enum OutputIds
-	{
-		OUTPUT_MAIN_CLOCK,
-		NUM_OUTPUTS
-	};
-
-	enum LightIds
-	{
-		NUM_LIGHTS
-	};
-
-	enum StateIds : unsigned int
-	{
-		STATE_FREQUENCY
-	};
-
-	Clock();
-
-	void restart()
-	{
-		m_current = std::chrono::nanoseconds{0u};
-		m_lastTime = std::chrono::steady_clock::now();
-		m_value = 0u;
-	}
-
-	void step() override;
-
-	unsigned int getValue()const
-	{
-		return m_value;
-	}
-private:
-	FiniteStateMachine m_machine;
-	std::chrono::nanoseconds m_interval;
-	std::chrono::nanoseconds m_current;
-	std::chrono::nanoseconds m_increment;
-	std::chrono::time_point<std::chrono::steady_clock, std::chrono::nanoseconds> m_lastTime;
-	bool m_clockTrigger = false;
-	unsigned int m_value = 0u;
-};
+#include "Clock.hpp"
+#include <utils/Conversions.hpp>
 
 std::chrono::nanoseconds const Clock::OneSecond{1000000000};
 
-class Clock::ClockState : public FiniteStateMachine::AState
-{
-public:
-	explicit ClockState(std::string&& stateName, Clock* clock) :
-		AState(std::move(stateName)),
-		m_clock(clock)
-	{
-	}
-
-	void stepState()
-	{
-	}
-
-	virtual void onValueChanged(float value) = 0;
-protected:
-	void setInterval(std::chrono::nanoseconds interval)
-	{
-		m_clock->m_interval = interval;
-	}
-
-	void reset()
-	{
-		m_clock->restart();
-	}
-
-	void setCurrentText(std::string&& text)
-	{
-		m_currentText = std::move(text);
-	}
-private:
-	Clock* const m_clock;
-	std::string m_mode;
-	std::string m_currentText;
-};
-
-class Clock::ChangeFrequencyState : public ClockState
-{
-public:
-	explicit ChangeFrequencyState(Clock* clock) :
-		ClockState("Frq", clock)
-	{
-	}
-
-	void beginState() {}
-	void stepState() {}
-	void endState() {}
-
-	void onValueChanged(float value)
-	{
-		auto const interval = m_maxInterval * value;
-		auto const frequency = 1.f / static_cast<float>(std::chrono::duration_cast<std::chrono::seconds>(interval).count());
-
-		setInterval(std::chrono::duration_cast<std::chrono::nanoseconds>(interval));
-		setCurrentText("Freq: " + std::to_string(frequency));
-	}
-private:
-	std::chrono::seconds m_maxInterval{60};
-};
+//////////////////////////////////////////////////////////
+//
+// class Clock
+//
 
 Clock::Clock() :
 	rack::Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS),
 	m_interval(OneSecond)
 {
 	m_machine.registerStateType<ChangeFrequencyState>(Clock::STATE_FREQUENCY);
-	m_machine.change(Clock::STATE_FREQUENCY);
+	m_machine.registerStateType<ChangeBPMState>(Clock::STATE_BPM);
+	m_machine.change(Clock::STATE_FREQUENCY, *this);
 	restart();
+}
+
+void Clock::restart()
+{
+	m_current = std::chrono::nanoseconds{0u};
+	m_lastTime = std::chrono::steady_clock::now();
+	m_previousValue = params[PARAM_VALUE].value;
+}
+
+void Clock::reset()
+{
+	m_interval = std::chrono::nanoseconds{OneSecond / 2};
+	m_current = std::chrono::nanoseconds{0u};
+	m_lastTime = std::chrono::steady_clock::now();
+	m_previousValue = params[PARAM_VALUE].value;
 }
 
 void Clock::step()
 {
+	rack::Module::step();
 	m_machine.step();
 
 	auto const currentTime = std::chrono::steady_clock::now();
@@ -144,7 +45,7 @@ void Clock::step()
 	m_current += elaspedTime;
 	if (m_current >= m_interval)
 	{
-		m_current = std::min(std::chrono::nanoseconds{0}, m_current - m_interval);
+		m_current -= m_interval;
 		m_clockTrigger = true;
 		++m_value;
 	}
@@ -152,39 +53,130 @@ void Clock::step()
 	{
 		m_clockTrigger = false;
 	}
+
 	outputs.at(OUTPUT_MAIN_CLOCK).value = m_clockTrigger ? 1.f : 0.f;
 
-	auto& currentState = static_cast<Clock::ClockState&>(m_machine.currentState());
-	auto const currentValue = params.at(Clock::PARAM_CHANGE_MODE).value;
+	if (m_buttonTrigger.process(params.at(Clock::PARAM_CHANGE_MODE).value))
+	{
+		unsigned int const newStateKey = (m_machine.currentStateKey() + 1u) % STATE_COUNT;
 
-	currentState.onValueChanged(currentValue);
+		m_machine.change(newStateKey, *this);
+	}
+	if (m_machine.hasState())
+	{
+		auto& currentState = static_cast<Clock::ClockState&>(m_machine.currentState());
+		auto const currentValue = params.at(Clock::PARAM_VALUE).value;
+
+		if (!(std::abs(currentValue - m_previousValue) < std::numeric_limits<float>::epsilon()))
+		{
+			currentState.onValueChanged(currentValue);
+		}
+		m_previousValue = currentValue;
+	}
 }
-ClockWidget::ClockWidget() :
-	m_clock(new Clock),
-	m_segmentDisplay(new FourteenSegmentDisplay)
+
+std::chrono::nanoseconds Clock::getInterval()const
 {
-	setModule(m_clock);
-
-	auto* const mainPanel = new rack::LightPanel;
-	auto const Margin = 5.f;
-
-	box.size = rack::Vec(15 * 6, 380);
-	m_segmentDisplay->box.pos = {25.f, 5.f};
-	m_segmentDisplay->box.size = {15 * 6 - Margin - 25.f, 25.f};
-	mainPanel->box.size = box.size;
-	addChild(mainPanel);
-	addChild(m_segmentDisplay);
-
-	auto* port = createOutput<rack::PJ301MPort>({}, Clock::OUTPUT_MAIN_CLOCK);
-	auto* knob = createParam<rack::RoundSmallBlackKnob>({}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.5f);
-
-	port->box.pos.x = (15.f * 6.f - port->box.size.x) / 2.f;
-	port->box.pos.y = 50.f;
-
-	auto* const button = createParam<rack::LEDButton>({5.f, 8.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
+	return m_interval;
 }
 
-void ClockWidget::step()
+std::string Clock::getCurrentText()const
 {
-	m_segmentDisplay->setText(std::to_string(m_clock->getValue()));
+	std::string text;
+
+	if (m_machine.hasState())
+	{
+		auto& currentState = static_cast<Clock::ClockState&>(m_machine.currentState());
+
+		text = currentState.getCurrentText();
+	}
+	return text;
 }
+
+json_t *Clock::toJson()
+{
+	json_t *rootNode = json_object();
+	auto const nanoSecondInterval = std::to_string(m_interval.count());
+
+	json_object_set_new(rootNode, "interval", json_string(nanoSecondInterval.c_str()));
+	json_object_set_new(rootNode, "state", json_integer(m_machine.currentStateKey()));
+	return rootNode;
+}
+
+void Clock::fromJson(json_t *root)
+{
+	json_t* const intervalNode = json_object_get(root, "interval");
+	json_t* const stateNode = json_object_get(root, "state");
+
+	if (intervalNode && json_is_string(intervalNode) &&
+		stateNode && json_is_integer(stateNode))
+	{
+		std::string const intervalText{json_string_value(intervalNode)};
+
+		m_interval = std::chrono::nanoseconds{std::stoull(intervalText)};
+		m_machine.change(json_integer_value(stateNode), *this);
+	}
+}
+
+//////////////////////////////////////////////////////////
+//
+// class Clock::ChangeFrequencyState
+//
+class Clock::ChangeFrequencyState : public ClockState
+{
+	using Seconds = std::chrono::duration<float>;
+public:
+	explicit ChangeFrequencyState(Clock& clock) :
+		ClockState("Freq", clock)
+	{
+	}
+
+	void beginState()
+	{
+		setCurrentText(formatValue(nanosecondsToFrequency(getInterval()), "Main\n%.2fHz"));
+	}
+
+	void onValueChanged(float value)
+	{
+		auto const f = m_minFrequency + (m_maxFrequency - m_minFrequency) * value;
+		auto const interval = secondsToNanoseconds(Seconds{1.f / f});
+
+		setInterval(interval);
+		setCurrentText(formatValue(nanosecondsToFrequency(interval), "Main\n%.2fHz"));
+	}
+private:
+	float const m_minFrequency = 0.01f;
+	float const m_maxFrequency = 20.f;
+};
+
+//////////////////////////////////////////////////////////
+//
+// class Clock::ChangeBPMState
+//
+class Clock::ChangeBPMState : public ClockState
+{
+	using Seconds = std::chrono::duration<float>;
+public:
+	explicit ChangeBPMState(Clock& clock) :
+		ClockState("BPM", clock)
+	{
+	}
+
+	void beginState()
+	{
+		auto const bpm = nanosecondToBpm(getInterval());
+
+		setCurrentText(formatValue(static_cast<unsigned int>(bpm), "Main\n%uBPM"));
+	}
+
+	void onValueChanged(float value)
+	{
+		auto const bpm = m_minBPM + (m_maxBPM - m_minBPM) * value;
+
+		setInterval(bpmToNanoseconds(bpm));
+		setCurrentText(formatValue(static_cast<unsigned int>(bpm), "Main\n%uBPM"));
+	}
+private:
+	unsigned int const m_minBPM = 1u;
+	unsigned int const m_maxBPM = 300u;
+};

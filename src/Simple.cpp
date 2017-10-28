@@ -1,5 +1,7 @@
 #include "Simple.hpp"
 
+#include "ClockWidget.hpp"
+
 rack::Plugin* plugin;
 
 void init(rack::Plugin *p)
