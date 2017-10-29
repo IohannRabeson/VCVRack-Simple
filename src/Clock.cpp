@@ -54,6 +54,12 @@ void Clock::step()
 		m_clockTrigger = false;
 	}
 
+	if (m_inputResetTrigger.process(inputs.at(INPUT_RESET).value))
+	{
+		m_current = std::chrono::nanoseconds{0u};
+		m_clockTrigger = true;
+	}
+
 	outputs.at(OUTPUT_MAIN_CLOCK).value = m_clockTrigger ? 1.f : 0.f;
 
 	if (m_buttonTrigger.process(params.at(Clock::PARAM_CHANGE_MODE).value))
