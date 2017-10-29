@@ -2,7 +2,9 @@
 layout: page
 title: Modules
 ---
-# Modules documentation
+<h1>Modules documentation</h1>
+<ul>
 {% for item in site.modules %}
-- [{{ item.name }}](modules/{{ item.key }})
+<li>[{{ item.name }}](modules/{{ item.key }})</li>
 {% endfor %}
+</ul>
