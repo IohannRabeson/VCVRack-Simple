@@ -21,6 +21,7 @@ matrix:
         - MATRIX_EVAL="CC=clang && CXX=clang++"
 
 before_install:
+ - RACK_GIT_COMMIT=149ecac9d3d8fc923ecb008b6749a82670907744
  - eval "${MATRIX_EVAL}"
  - cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
  - cd ./Rack && git reset --hard "${RACK_GIT_COMMIT}" && git submodule update && cd ..

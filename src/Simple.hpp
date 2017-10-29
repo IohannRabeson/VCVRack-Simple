@@ -4,6 +4,7 @@
 #include <widgets.hpp>
 
 #include <utils/ExtendedModuleWidget.hpp>
+#include <utils/VuMeter.hpp>
 
 extern rack::Plugin *plugin;
 
@@ -25,6 +26,8 @@ class RecorderWidget : public ExtendedModuleWidget
 {
 public:
 	RecorderWidget();
+
+	void step() override;
 private:
 	void onSelectFileButtonClicked();
 	bool selectOutputFile();
@@ -32,6 +35,8 @@ private:
 private:
 	Recorder* const m_recorder;
 	rack::Label* const m_label;
+	VuMeter* const m_leftMeter;
+	VuMeter* const m_rightMeter;
 };
 
 #endif
