@@ -1,5 +1,7 @@
 theme: jekyll-theme-midnight
 baseurl: /VCVRack-Simple
+google_analytics: UA-108824428-1
+
 collections:
   modules:
     output: true
