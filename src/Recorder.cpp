@@ -259,8 +259,8 @@ RecorderWidget::RecorderWidget() :
 	createParam<rack::LEDButton>({40, Top}, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f);
 	createInput<rack::PJ301MPort>({37, Top + 25}, Recorder::INPUT_START_STOP);
 	createOutput<rack::PJ301MPort>({37, Top + 55}, Recorder::OUTPUT_START_STOP);
-	createLight<rack::MediumLight<rack::RedLight>>(rack::Vec{68, Top + 6}, Recorder::MAIN_LIGHT);
-	createLight<rack::SmallLight<rack::GreenLight>>(rack::Vec{16.f, Top - 24.f}, Recorder::FILE_LIGHT);
+	createLight<rack::SmallLight<rack::RedLight>>(rack::Vec{68, Top + 6}, Recorder::MAIN_LIGHT);
+	createLight<rack::TinyLight<rack::GreenLight>>(rack::Vec{16.5f, Top - 23.5f}, Recorder::FILE_LIGHT);
 
 	m_label->text = "<none>";
 	m_label->box.pos.x = 22;
