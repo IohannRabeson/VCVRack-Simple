@@ -1,6 +1,7 @@
 ---
 name: "Button trigger"
 key: button_trigger
+layout: module
 ---
 Produce a dirac of 10V when the button is pressed.  
 This module was initialy made for test.  
