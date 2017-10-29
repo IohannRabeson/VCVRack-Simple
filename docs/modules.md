@@ -3,6 +3,6 @@ layout: page
 title: Modules
 ---
 # Modules documentation
-{% for page in site.modules %}
-- [{{ page.title }}](modules/{{ page.key }})
+{% for item in site.modules %}
+- [{{ item.name }}](modules/{{ item.key }})
 {% endfor %}
