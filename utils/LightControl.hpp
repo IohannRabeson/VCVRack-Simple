@@ -20,7 +20,7 @@ public:
 	LightControl();
 
 	void step();
-	float* lightValue();
+	float lightValue()const;
 
 	template <class T, class ... A>
 	void setState(A&& ... args)

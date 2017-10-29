@@ -1,5 +1,6 @@
 # [VCVRack-Simple](https://iohannrabeson.github.io/VCVRack-Simple/) [![Build Status](https://travis-ci.org/IohannRabeson/VCVRack-Simple.svg?branch=master)](https://travis-ci.org/IohannRabeson/VCVRack-Simple)
-Modules for [VCVRack](https://github.com/VCVRack/Rack).
+Modules for [VCVRack](https://github.com/VCVRack/Rack).  
+https://iohannrabeson.github.io/VCVRack-Simple/
 
 <p align="center">
 <a href="docs/modules/clock_divider"><img src="screenshots/clock_divider.png" alt="Clock divider image"></a>

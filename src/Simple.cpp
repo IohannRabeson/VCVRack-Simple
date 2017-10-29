@@ -1,5 +1,7 @@
 #include "Simple.hpp"
 
+#include "ClockWidget.hpp"
+
 rack::Plugin* plugin;
 
 void init(rack::Plugin *p)
@@ -13,4 +15,5 @@ void init(rack::Plugin *p)
 	p->addModel(rack::createModel<ButtonTriggerWidget>("IO-Simple", "Simple", "IO-ButtonTrigger", "Button Trigger"));
 	p->addModel(rack::createModel<ClockDividerWidget>("IO-Simple", "Simple", "IO-ClockDivider", "Clock Divider"));
 	p->addModel(rack::createModel<RecorderWidget>("IO-Simple", "Simple", "IO-Recorder", "Recorder"));
+	p->addModel(rack::createModel<ClockWidget>("IO-Simple", "Simple", "IO-Clock", "Clock"));
 }
