@@ -20,14 +20,17 @@ ClockWidget::ClockWidget() :
 	addChild(mainPanel);
 	addChild(m_segmentDisplay);
 
-	auto* const port = createOutput<rack::PJ301MPort>({}, Clock::OUTPUT_MAIN_CLOCK);
+	auto* const clockOutput = createOutput<rack::PJ301MPort>({}, Clock::OUTPUT_MAIN_CLOCK);
+	auto* const resetInput = createInput<rack::PJ301MPort>({}, Clock::INPUT_RESET);
 	auto* const knob = createParam<rack::RoundBlackKnob>({}, Clock::PARAM_VALUE, 0.0001f, 1.f, 0.5f);
 	createParam<rack::LEDButton>({5.f, 8.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
 
-	port->box.pos.x = (15.f * 6.f - port->box.size.x) / 2.f;
-	port->box.pos.y = 50.f;
+	clockOutput->box.pos.x = (15.f * 6.f - clockOutput->box.size.x) / 2.f;
+	clockOutput->box.pos.y = 50.f;
+	resetInput->box.pos.x = (15.f * 6.f - resetInput->box.size.x) / 2.f;
+	resetInput->box.pos.y = clockOutput->box.pos.y + clockOutput->box.size.y + resetInput->box.pos.y + 5.f;
 	knob->box.pos.x = (15.f * 6.f - knob->box.size.x) / 2.f;
-	knob->box.pos.y = port->box.pos.y + 50.f;
+	knob->box.pos.y = resetInput->box.pos.y + resetInput->box.size.y + 50.f;
 }
 
 void ClockWidget::step()
