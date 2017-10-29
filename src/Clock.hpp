@@ -16,6 +16,7 @@ public:
 
 	enum InputIds
 	{
+		INPUT_RESET,
 		NUM_INPUTS
 	};
 
@@ -64,6 +65,7 @@ private:
 	std::chrono::nanoseconds m_increment;
 	std::chrono::time_point<std::chrono::steady_clock, std::chrono::nanoseconds> m_lastTime;
 	float m_previousValue = 0.f;
+	rack::SchmittTrigger m_inputResetTrigger;
 	rack::SchmittTrigger m_buttonTrigger;
 	bool m_clockTrigger = false;
 	unsigned int m_value = 0u;
@@ -81,7 +83,6 @@ public:
 		m_clock(clock)
 	{
 	}
-
 
 	void stepState()
 	{
