@@ -10,14 +10,25 @@ std::chrono::nanoseconds const Clock::OneSecond{1000000000};
 //
 
 unsigned int const Clock::Resolution = 128u;
+unsigned int const Clock::MaxClockPosition = Clock::Resolution * 512u * 8u;
 
 std::vector<std::pair<unsigned int, std::string>> const Clock::Resolutions =
 {
+	{Clock::Resolution * 8, "2 / 1"},
+	{Clock::Resolution * 4, "1 / 1"},
+	{Clock::Resolution * 2, "1 / 2"},
 	{Clock::Resolution, "1 / 4"},
+	{Clock::Resolution / 3, "1 / 4T"},
 	{Clock::Resolution / 2, "1 / 8"},
+	{Clock::Resolution / 6, "1 / 4T"},
 	{Clock::Resolution / 4, "1 / 16"},
+	{Clock::Resolution / 12, "1 / 16T"},
 	{Clock::Resolution / 8, "1 / 32"},
-	{Clock::Resolution / 16, "1 / 64"}
+	{Clock::Resolution / 24, "1 / 32T"},
+	{Clock::Resolution / 16, "1 / 64"},
+	{Clock::Resolution / 48, "1 / 64T"},
+	{Clock::Resolution / 32, "1 / 128"},
+	{Clock::Resolution / 96, "1 / 128T"}
 };
 
 Clock::Clock() :
@@ -56,13 +67,15 @@ void Clock::restart()
 	m_current = std::chrono::nanoseconds{0u};
 	m_lastTime = std::chrono::steady_clock::now();
 	m_previousValue = params[PARAM_VALUE].value;
-	std::for_each(m_outputs.begin(), m_outputs.end(), [](ClockOutput& output){ output.reset(); });
+	m_clockPosition = 0u;
+	std::for_each(m_outputs.begin(), m_outputs.end(), [](ClockOutput& output){ output.restart(); });
 }
 
 void Clock::reset()
 {
 	m_interval = std::chrono::nanoseconds{OneSecond / 2};
 	m_machine.change(Clock::STATE_BPM, *this);
+	std::for_each(m_outputs.begin(), m_outputs.end(), [](ClockOutput& output){ output.recallDefaultValues(); });
 	restart();
 }
 
@@ -77,6 +90,9 @@ void Clock::updateClockTrigger()
 	if (m_current >= interval)
 	{
 		m_current -= interval;
+		// The maximum divisor is 512 so we can have at most
+		// Resolution * 512u ticks to count.
+		m_clockPosition = (m_clockPosition + 1) % (MaxClockPosition);
 		m_clockTrigger = true;
 	}
 	else if (m_inputResetTrigger.process(inputs.at(INPUT_RESET).value))
@@ -88,13 +104,15 @@ void Clock::updateClockTrigger()
 	{
 		m_clockTrigger = false;
 	}
-
-	for (auto i = 0u; i < m_outputs.size(); ++i)
+	if (m_clockTrigger)
 	{
-		auto& output = getOutput(i);
-		auto const gate = output.step(m_clockTrigger, getInterval(), elaspedTime);
+		for (auto i = 0u; i < m_outputs.size(); ++i)
+		{
+			auto& output = getOutput(i);
+			auto const gate = output.step(m_clockPosition, getInterval(), elaspedTime);
 
-		outputs.at(OUTPUT_CLOCK_0 + i).value = gate ? output.getOutputVoltage() : 0.f;
+			outputs.at(OUTPUT_CLOCK_0 + i).value = gate ? output.getOutputVoltage() : 0.f;
+		}
 	}
 }
 
@@ -292,24 +310,30 @@ std::chrono::nanoseconds Clock::Time::getTime(std::chrono::nanoseconds const int
 //
 // class Clock::Output
 //
-bool Clock::ClockOutput::step(bool const tick,
+bool Clock::ClockOutput::step(int const clockPosition,
 		  				      std::chrono::nanoseconds const interval,
 		  					  std::chrono::nanoseconds const dt)
 {
 	auto const resolution = Resolutions[m_resolutionIndex].first;
 
-	if (tick && ++m_current >= m_divisor * resolution)
+	if (clockPosition % (m_divisor * resolution) == 0)
 	{
-		m_current = 0u;
 		m_currentGateTime = std::chrono::nanoseconds{0u};
 	}
 	return gateStep(dt, interval);
 }
 
-void Clock::ClockOutput::reset()
+void Clock::ClockOutput::restart()
 {
-	m_current = 0u;
 	m_currentGateTime = std::chrono::nanoseconds{0u};
+}
+
+void Clock::ClockOutput::recallDefaultValues()
+{
+	m_gateTime = Time::nanoseconds(std::chrono::nanoseconds{0});
+	m_outputVoltage = 10.f;
+	m_divisor = 1u;
+	m_resolutionIndex = 3u;
 }
 
 void Clock::ClockOutput::setDivisor(unsigned int divisor)
@@ -367,6 +391,7 @@ bool Clock::ClockOutput::gateStep(std::chrono::nanoseconds const dt, std::chrono
 	}
 	return result;
 }
+
 //////////////////////////////////////////////////////////
 //
 // class Clock::ChangeFrequencyState
@@ -374,6 +399,7 @@ bool Clock::ClockOutput::gateStep(std::chrono::nanoseconds const dt, std::chrono
 class Clock::ChangeFrequencyState : public ClockState
 {
 	using Seconds = std::chrono::duration<float>;
+	static constexpr char const* const Format = "Main\n  %.2fHz";
 public:
 	explicit ChangeFrequencyState(Clock& clock) :
 		ClockState("Freq", clock)
@@ -382,7 +408,7 @@ public:
 
 	void beginState()
 	{
-		setCurrentText(formatValue("Main\n%.2fHz", nanosecondsToFrequency(getInterval())));
+		setCurrentText(formatValue(Format, nanosecondsToFrequency(getInterval())));
 	}
 
 	void onValueChanged(float value)
@@ -391,7 +417,7 @@ public:
 		auto const interval = secondsToNanoseconds(Seconds{1.f / f});
 
 		setInterval(interval);
-		setCurrentText(formatValue("Main\n%.2fHz", nanosecondsToFrequency(interval)));
+		setCurrentText(formatValue(Format, nanosecondsToFrequency(interval)));
 	}
 private:
 	float const m_minFrequency = 0.01f;
@@ -405,6 +431,7 @@ private:
 class Clock::ChangeBPMState : public ClockState
 {
 	using Seconds = std::chrono::duration<float>;
+	static constexpr char const* const Format = "Main\n  %u BPM";
 public:
 	explicit ChangeBPMState(Clock& clock) :
 		ClockState("BPM", clock)
@@ -415,7 +442,7 @@ public:
 	{
 		auto const bpm = nanosecondToBpm(getInterval());
 
-		setCurrentText(formatValue("Main\n%u BPM", static_cast<unsigned int>(bpm)));
+		setCurrentText(formatValue(Format, static_cast<unsigned int>(bpm)));
 	}
 
 	void onValueChanged(float value)
@@ -423,7 +450,7 @@ public:
 		auto const bpm = m_minBPM + (m_maxBPM - m_minBPM) * value;
 
 		setInterval(bpmToNanoseconds(bpm));
-		setCurrentText(formatValue("Main\n%u BPM", static_cast<unsigned int>(bpm)));
+		setCurrentText(formatValue(Format, static_cast<unsigned int>(bpm)));
 	}
 private:
 	unsigned int const m_minBPM = 1u;
@@ -437,6 +464,7 @@ private:
 template <unsigned int Index>
 class Clock::ChangeDivisorState : public ClockState
 {
+	static constexpr char const* const Format = "Divisor %u\n/%u";
 public:
 	explicit ChangeDivisorState(Clock& clock) :
 		ClockState("Divisor", clock)
@@ -445,7 +473,7 @@ public:
 
 	void beginState()
 	{
-		setCurrentText(formatValue("Divisor %u\n/%u", Index, getDivisor(Index)));
+		setCurrentText(formatValue(Format, Index, getDivisor(Index)));
 	}
 
 	void onValueChanged(float value)
@@ -453,7 +481,7 @@ public:
 		auto const divisor = m_minDivisor + static_cast<unsigned int>(static_cast<float>(m_maxDivisor - m_minDivisor) * value);
 
 		setDivisor(Index, divisor);
-		setCurrentText(formatValue("Divisor %u\n/%u", Index, divisor));
+		setCurrentText(formatValue(Format, Index, divisor));
 	}
 private:
 	unsigned int m_minDivisor = 1u;
@@ -461,9 +489,14 @@ private:
 };
 
 
+//////////////////////////////////////////////////////////
+//
+// class Clock::ChangeResolutionState
+//
 template <unsigned int Index>
 class Clock::ChangeResolutionState : public ClockState
 {
+	static constexpr char const* const Format = "Resolution %u\n  %s";
 public:
 	explicit ChangeResolutionState(Clock& clock) :
 		ClockState("Resolution", clock)
@@ -474,7 +507,7 @@ public:
 	{
 		auto const resolutionIndex = clock().getResolutionIndex(Index);
 
-		setCurrentText(formatValue("Resolution %u\n%s", Index, Resolutions[resolutionIndex].second.c_str()));
+		setCurrentText(formatValue(Format, Index, Resolutions[resolutionIndex].second.c_str()));
 	}
 
 	void onValueChanged(float value)
@@ -484,7 +517,7 @@ public:
 		std::size_t resolutionIndex = static_cast<float>(Clock::Resolutions.size() - 1) * value;
 
 		clock().setResolutionIndex(Index, resolutionIndex);
-		setCurrentText(formatValue("Resolution %u\n%s", Index, Resolutions[resolutionIndex].second.c_str()));
+		setCurrentText(formatValue(Format, Index, Resolutions[resolutionIndex].second.c_str()));
 	}
 };
 
@@ -496,7 +529,7 @@ template <unsigned int Index>
 class Clock::ChangeGateTimeState : public ClockState
 {
 	using Seconds = std::chrono::duration<float>;
-	static std::string const Format;
+	static constexpr char const* const Format = "Gate time %u\n  %.3fs";
 public:
 	explicit ChangeGateTimeState(Clock& clock) :
 		ClockState("Gate time", clock)
@@ -508,7 +541,7 @@ public:
 		auto const interval = getInterval();
 		auto const gateTime = std::chrono::duration_cast<Seconds>(getGateTime(Index).getTime(interval));
 
-		setCurrentText(formatValue("Gate time %u\n%.3fs", Index, gateTime.count()));
+		setCurrentText(formatValue(Format, Index, gateTime.count()));
 	}
 
 	void onValueChanged(float value)
@@ -516,7 +549,7 @@ public:
 		auto const gateTime = m_minTime + (m_maxTime - m_minTime) * value;
 
 		setGateTime(Index, Time::seconds(gateTime));
-		setCurrentText(formatValue("Gate time %u\n%.3fs", Index, gateTime.count()));
+		setCurrentText(formatValue(Format, Index, gateTime.count()));
 	}
 private:
 	Seconds const m_minTime{0.f};
@@ -530,8 +563,7 @@ private:
 template <unsigned int Index>
 class Clock::ChangeOutputVoltageState : public ClockState
 {
-	using Seconds = std::chrono::duration<float>;
-	static std::string const Format;
+	static constexpr char const* const Format = "Voltage %u\n  %.2fv";
 public:
 	explicit ChangeOutputVoltageState(Clock& clock) :
 		ClockState("Output voltage", clock)
@@ -542,7 +574,7 @@ public:
 	{
 		auto const voltage = getOutputVoltage(Index);
 
-		setCurrentText(formatValue("Voltage %u\n%.2fv", Index, voltage));
+		setCurrentText(formatValue(Format, Index, voltage));
 	}
 
 	void onValueChanged(float value)
@@ -550,7 +582,7 @@ public:
 		auto const voltage = m_min + (m_max - m_min) * value;
 
 		setOutputVoltage(Index, voltage);
-		setCurrentText(formatValue("Voltage %u\n%.2fv", Index, voltage));
+		setCurrentText(formatValue(Format, Index, voltage));
 	}
 private:
 	float const m_min = 0.f;

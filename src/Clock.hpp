@@ -10,6 +10,7 @@ class Clock : public rack::Module
 {
 	static std::vector<std::pair<unsigned int, std::string>> const Resolutions;
 	static unsigned int const Resolution;
+	static unsigned int const MaxClockPosition;
 
 	class ClockState;
 	class ChangeFrequencyState;
@@ -143,11 +144,12 @@ private:
 	class ClockOutput
 	{
 	public:
-		bool step(bool const tick,
+		bool step(int const clockPosition,
 				  std::chrono::nanoseconds const interval,
 				  std::chrono::nanoseconds const dt);
 
-		void reset();
+		void restart();
+		void recallDefaultValues();
 
 		void setDivisor(unsigned int divisor);
 		unsigned int getDivisor()const;
@@ -167,8 +169,7 @@ private:
 		std::chrono::nanoseconds m_currentGateTime;
 		float m_outputVoltage = 10.f;
 		unsigned int m_divisor = 1u;
-		unsigned int m_current = 0u;
-		std::size_t m_resolutionIndex = 0u;
+		std::size_t m_resolutionIndex = 3u;
 	};
 private:
 	FSM m_machine;
@@ -176,6 +177,7 @@ private:
 	std::chrono::nanoseconds m_current;
 	std::chrono::nanoseconds m_increment;
 	std::chrono::time_point<std::chrono::steady_clock, std::chrono::nanoseconds> m_lastTime;
+	int m_clockPosition = 0;
 	float m_previousValue = 0.f;
 	rack::SchmittTrigger m_inputResetTrigger;
 	rack::SchmittTrigger m_buttonTrigger;
@@ -274,7 +276,6 @@ protected:
 	}
 private:
 	Clock& m_clock;
-	std::string m_mode;
 	std::string m_currentText;
 };
 
