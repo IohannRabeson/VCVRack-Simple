@@ -1,6 +1,7 @@
 ---
 name: "Clock divider"
 key: clock_divider
+version: 0.0.0
 layout: module
 ---
 This module can divide a clock into 8 different divisions.<br/>
