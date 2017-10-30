@@ -7,6 +7,9 @@ Modules for [VCVRack](https://github.com/VCVRack/Rack).
 <a href="https://iohannrabeson.github.io/VCVRack-Simple/modules/button_trigger"><img src="docs/screenshots/button_trigger.png" alt="Button trigger image"></a>
 </p>
 
+More infos and user manuals:
+https://iohannrabeson.github.io/VCVRack-Simple/
+
 ## Build from sources
 ### Linux
 Compilation is tested on Linux with gcc-7.
