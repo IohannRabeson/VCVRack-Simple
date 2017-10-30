@@ -1,11 +1,11 @@
 #include "ClockWidget.hpp"
 #include "Clock.hpp"
 
-#include <utils/FourteenSegmentDisplay.hpp>
+#include <utils/TextDisplay.hpp>
 
 ClockWidget::ClockWidget() :
 	m_clock(new Clock),
-	m_segmentDisplay(new FourteenSegmentDisplay)
+	m_segmentDisplay(new TextDisplay)
 {
 
 	auto* const mainPanel = new rack::LightPanel;
@@ -20,17 +20,23 @@ ClockWidget::ClockWidget() :
 	addChild(mainPanel);
 	addChild(m_segmentDisplay);
 
-	auto* const clockOutput = createOutput<rack::PJ301MPort>({}, Clock::OUTPUT_MAIN_CLOCK);
 	auto* const resetInput = createInput<rack::PJ301MPort>({}, Clock::INPUT_RESET);
 	auto* const knob = createParam<rack::RoundBlackKnob>({}, Clock::PARAM_VALUE, 0.0001f, 1.f, 0.5f);
 	createParam<rack::LEDButton>({5.f, 8.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
 
-	clockOutput->box.pos.x = (15.f * 6.f - clockOutput->box.size.x) / 2.f;
-	clockOutput->box.pos.y = 50.f;
 	resetInput->box.pos.x = (15.f * 6.f - resetInput->box.size.x) / 2.f;
-	resetInput->box.pos.y = clockOutput->box.pos.y + clockOutput->box.size.y + resetInput->box.pos.y + 5.f;
+	resetInput->box.pos.y = 50.f;
 	knob->box.pos.x = (15.f * 6.f - knob->box.size.x) / 2.f;
 	knob->box.pos.y = resetInput->box.pos.y + resetInput->box.size.y + 50.f;
+
+	float yPos = knob->box.pos.y + knob->box.size.y + 5.f;
+	for (auto i = 0u; i < 4u; ++i)
+	{
+		auto* const clockOutput = createOutput<rack::PJ301MPort>({}, Clock::OUTPUT_CLOCK_0 + i);
+		clockOutput->box.pos.x = (15.f * 6.f - clockOutput->box.size.x) / 2.f;
+		clockOutput->box.pos.y = yPos;
+		yPos += clockOutput->box.size.y + 5.f;
+	}
 }
 
 void ClockWidget::step()

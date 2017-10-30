@@ -2,10 +2,10 @@
 #define FOURTEENSEGMENTDISPLAY_HPP
 #include <rack.hpp>
 
-class FourteenSegmentDisplay : public rack::Widget
+class TextDisplay : public rack::Widget
 {
 public:
-	explicit FourteenSegmentDisplay(std::size_t const maxCharacters = 2u);
+	explicit TextDisplay(std::size_t const maxCharacters = 2u);
 
 	void setText(std::string const& text);
 	void setFontSize(float const size);

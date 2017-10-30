@@ -1,13 +1,13 @@
-#include "FourteenSegmentDisplay.hpp"
+#include "TextDisplay.hpp"
 #include "src/Simple.hpp" // for plugin TODO: remove this relative reference
 
-FourteenSegmentDisplay::FourteenSegmentDisplay(std::size_t const maxCharacters) :
+TextDisplay::TextDisplay(std::size_t const maxCharacters) :
 	m_font(rack::Font::load(rack::assetPlugin(plugin, "res/fonts/Sudo.ttf"))),
 	m_maxCharacters(maxCharacters)
 {
 }
 
-void FourteenSegmentDisplay::draw(NVGcontext* vg)
+void TextDisplay::draw(NVGcontext* vg)
 {
 	nvgSave(vg);
 	nvgFillColor(vg, nvgRGBA(0x30, 0x33, 0x32, 0xFF));
@@ -20,12 +20,12 @@ void FourteenSegmentDisplay::draw(NVGcontext* vg)
 	nvgRestore(vg);
 }
 
-void FourteenSegmentDisplay::setText(std::string const& text)
+void TextDisplay::setText(std::string const& text)
 {
 	m_displayedText = text;
 }
 
-void FourteenSegmentDisplay::setFontSize(float const size)
+void TextDisplay::setFontSize(float const size)
 {
 	m_fontSize = size;
 }

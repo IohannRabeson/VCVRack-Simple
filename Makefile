@@ -11,7 +11,7 @@ SOURCES = src/Simple.cpp					\
 		  utils/WavWriter.cpp				\
 		  utils/StateMachine.cpp			\
 		  utils/Path.cpp					\
-		  utils/FourteenSegmentDisplay.cpp	\
+		  utils/TextDisplay.cpp	\
 		  utils/VuMeter.cpp					\
 		  utils/write_wav.c
 

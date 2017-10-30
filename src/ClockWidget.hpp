@@ -3,7 +3,7 @@
 #include <utils/ExtendedModuleWidget.hpp>
 
 class Clock;
-class FourteenSegmentDisplay;
+class TextDisplay;
 
 class ClockWidget : public ExtendedModuleWidget
 {
@@ -13,7 +13,7 @@ public:
 	void step() override;
 private:
 	Clock* const m_clock;
-	FourteenSegmentDisplay* const m_segmentDisplay;
+	TextDisplay* const m_segmentDisplay;
 };
 
 #endif
