@@ -1,9 +1,8 @@
 #include "TextDisplay.hpp"
 #include "src/Simple.hpp" // for plugin TODO: remove this relative reference
 
-TextDisplay::TextDisplay(std::size_t const maxCharacters) :
-	m_font(rack::Font::load(rack::assetPlugin(plugin, "res/fonts/Sudo.ttf"))),
-	m_maxCharacters(maxCharacters)
+TextDisplay::TextDisplay() :
+	m_font(rack::Font::load(rack::assetPlugin(plugin, "res/fonts/Sudo.ttf")))
 {
 }
 
