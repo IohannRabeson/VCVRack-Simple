@@ -84,31 +84,6 @@ public:
 		STATE_COUNT
 	};
 
-	class Time
-	{
-	public:
-		enum class Type
-		{
-			Nanoseconds,
-			Ticks,
-			Percents,
-			Null
-		};
-
-		static Time seconds(std::chrono::duration<float> const value);
-		static Time nanoseconds(std::chrono::nanoseconds const value);
-		static Time ticks(unsigned int const value);
-		static Time percents(float value);
-
-		Type getType()const;
-		std::chrono::nanoseconds getTime(std::chrono::nanoseconds const interval)const;
-	private:
-		std::chrono::nanoseconds m_nanoseconds;
-		unsigned int m_ticks = 0u;
-		float m_percents = 0.f;
-		Type m_type = Type::Null;
-	};
-
 	using FSM = FiniteStateMachine<unsigned int, Clock&>;
 
 	Clock();
@@ -120,8 +95,8 @@ public:
 	std::chrono::nanoseconds getInterval()const;
 	std::string getCurrentText()const;
 
-	void setGateTime(unsigned int const divisorIndex, Time const& time);
-	Time const& getGateTime(unsigned int const divisorIndex)const;
+	void setGateTime(unsigned int const divisorIndex, std::chrono::nanoseconds const time);
+	std::chrono::nanoseconds getGateTime(unsigned int const divisorIndex)const;
 
 	void setDivisor(unsigned int const index, unsigned int const divisor);
 	unsigned int getDivisor(unsigned int const index)const;
@@ -144,9 +119,7 @@ private:
 	class ClockOutput
 	{
 	public:
-		bool step(int const clockPosition,
-				  std::chrono::nanoseconds const interval,
-				  std::chrono::nanoseconds const dt);
+		bool step(int const clockPosition, std::chrono::nanoseconds const dt);
 
 		void restart();
 		void recallDefaultValues();
@@ -154,8 +127,8 @@ private:
 		void setDivisor(unsigned int divisor);
 		unsigned int getDivisor()const;
 
-		void setGateTime(Time const& time);
-		Time const& getGateTime()const;
+		void setGateTime(std::chrono::nanoseconds const& time);
+		std::chrono::nanoseconds getGateTime()const;
 
 		void setOutputVoltage(float const voltage);
 		float getOutputVoltage()const;
@@ -163,9 +136,9 @@ private:
 		void setResolutionIndex(std::size_t const index);
 		std::size_t getResolutionIndex()const;
 	private:
-		bool gateStep(std::chrono::nanoseconds const dt, std::chrono::nanoseconds const interval);
+		bool gateStep(std::chrono::nanoseconds const dt);
 	private:
-		Time m_gateTime;
+		std::chrono::nanoseconds m_gateTime;
 		std::chrono::nanoseconds m_currentGateTime;
 		float m_outputVoltage = 10.f;
 		unsigned int m_divisor = 1u;
@@ -235,12 +208,12 @@ protected:
 		return m_clock.getInterval();
 	}
 
-	void setGateTime(unsigned int const index, Time const& time)
+	void setGateTime(unsigned int const index, std::chrono::nanoseconds const time)
 	{
 		m_clock.setGateTime(index, time);
 	}
 
-	Time const& getGateTime(unsigned int const index)const
+	std::chrono::nanoseconds getGateTime(unsigned int const index)const
 	{
 		return m_clock.getGateTime(index);
 	}

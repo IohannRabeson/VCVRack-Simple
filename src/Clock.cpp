@@ -109,7 +109,7 @@ void Clock::updateClockTrigger()
 		for (auto i = 0u; i < m_outputs.size(); ++i)
 		{
 			auto& output = getOutput(i);
-			auto const gate = output.step(m_clockPosition, getInterval(), elaspedTime);
+			auto const gate = output.step(m_clockPosition, elaspedTime);
 
 			outputs.at(OUTPUT_CLOCK_0 + i).value = gate ? output.getOutputVoltage() : 0.f;
 		}
@@ -165,12 +165,12 @@ std::string Clock::getCurrentText()const
 	return text;
 }
 
-void Clock::setGateTime(unsigned int const divisorIndex, Time const& time)
+void Clock::setGateTime(unsigned int const divisorIndex, std::chrono::nanoseconds const time)
 {
 	getOutput(divisorIndex).setGateTime(time);
 }
 
-auto Clock::getGateTime(unsigned int const divisorIndex)const -> Time const&
+std::chrono::nanoseconds Clock::getGateTime(unsigned int const divisorIndex)const 
 {
 	return getOutput(divisorIndex).getGateTime();
 }
@@ -246,73 +246,9 @@ std::size_t Clock::getResolutionIndex(unsigned int const index)
 
 //////////////////////////////////////////////////////////
 //
-// class Clock::Time
-//
-auto Clock::Time::seconds(std::chrono::duration<float> const value) -> Time
-{
-	return nanoseconds(std::chrono::duration_cast<std::chrono::nanoseconds>(value));
-}
-
-auto Clock::Time::nanoseconds(std::chrono::nanoseconds const value) -> Time
-{
-	Time result;
-
-	result.m_type = Type::Nanoseconds;
-	result.m_nanoseconds = value;
-	return result;
-}
-
-auto Clock::Time::ticks(unsigned int const value) -> Time
-{
-	Time result;
-
-	result.m_type = Type::Ticks;
-	result.m_ticks = value;
-	return result;
-}
-
-auto Clock::Time::percents(float value) -> Time
-{
-	Time result;
-
-	result.m_type = Type::Percents;
-	result.m_percents = value;
-	return result;
-}
-
-auto Clock::Time::getType()const -> Type
-{
-	return m_type;
-}
-
-std::chrono::nanoseconds Clock::Time::getTime(std::chrono::nanoseconds const interval)const
-{
-	std::chrono::nanoseconds result{0u};
-
-	switch (m_type)
-	{
-	case Type::Nanoseconds:
-		result = m_nanoseconds;
-		break;
-	case Type::Ticks:
-		result = interval * m_ticks;
-		break;
-	case Type::Percents:
-		result = std::chrono::duration_cast<std::chrono::nanoseconds>(interval * m_percents);
-		break;
-	default:
-		break;
-	}
-	return result;
-}
-
-//////////////////////////////////////////////////////////
-//
 // class Clock::Output
 //
-bool Clock::ClockOutput::step(int const clockPosition,
-		  				      std::chrono::nanoseconds const interval,
-		  					  std::chrono::nanoseconds const dt)
+bool Clock::ClockOutput::step(int const clockPosition, std::chrono::nanoseconds const dt)
 {
 	auto const resolution = Resolutions[m_resolutionIndex].first;
 
@@ -320,7 +256,7 @@ bool Clock::ClockOutput::step(int const clockPosition,
 	{
 		m_currentGateTime = std::chrono::nanoseconds{0u};
 	}
-	return gateStep(dt, interval);
+	return gateStep(dt);
 }
 
 void Clock::ClockOutput::restart()
@@ -330,7 +266,7 @@ void Clock::ClockOutput::restart()
 
 void Clock::ClockOutput::recallDefaultValues()
 {
-	m_gateTime = Time::nanoseconds(std::chrono::nanoseconds{0});
+	m_gateTime = std::chrono::nanoseconds{0};
 	m_outputVoltage = 10.f;
 	m_divisor = 1u;
 	m_resolutionIndex = 3u;
@@ -348,12 +284,12 @@ unsigned int Clock::ClockOutput::getDivisor()const
 	return m_divisor;
 }
 
-void Clock::ClockOutput::setGateTime(Time const& time)
+void Clock::ClockOutput::setGateTime(std::chrono::nanoseconds const& time)
 {
 	m_gateTime = time;
 }
 
-auto Clock::ClockOutput::getGateTime()const -> Time const&
+std::chrono::nanoseconds Clock::ClockOutput::getGateTime()const
 {
 	return m_gateTime;
 }
@@ -379,12 +315,11 @@ std::size_t Clock::ClockOutput::getResolutionIndex()const
 	return m_resolutionIndex;
 }
 
-bool Clock::ClockOutput::gateStep(std::chrono::nanoseconds const dt, std::chrono::nanoseconds const interval)
+bool Clock::ClockOutput::gateStep(std::chrono::nanoseconds const dt)
 {
 	bool result = false;
-	auto gateTime = m_gateTime.getTime(interval);
 
-	if (m_currentGateTime <= gateTime)
+	if (m_currentGateTime <= m_gateTime)
 	{
 		m_currentGateTime += dt;
 		result = true;
@@ -538,8 +473,7 @@ public:
 
 	void beginState()
 	{
-		auto const interval = getInterval();
-		auto const gateTime = std::chrono::duration_cast<Seconds>(getGateTime(Index).getTime(interval));
+		auto const gateTime = std::chrono::duration_cast<Seconds>(getGateTime(Index));
 
 		setCurrentText(formatValue(Format, Index, gateTime.count()));
 	}
@@ -548,7 +482,7 @@ public:
 	{
 		auto const gateTime = m_minTime + (m_maxTime - m_minTime) * value;
 
-		setGateTime(Index, Time::seconds(gateTime));
+		setGateTime(Index, std::chrono::duration_cast<std::chrono::nanoseconds>(gateTime));
 		setCurrentText(formatValue(Format, Index, gateTime.count()));
 	}
 private:
