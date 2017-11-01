@@ -4,6 +4,30 @@
 
 std::chrono::nanoseconds const Clock::OneSecond{1000000000};
 
+namespace
+{
+	json_t* serialize(std::chrono::nanoseconds const value)
+	{
+		auto const text = std::to_string(value.count());
+
+		return json_string(text.c_str());
+	}
+
+	bool deserialize(json_t* const json, std::chrono::nanoseconds& value)
+	{
+		bool result = false;
+
+		if (json_is_string(json))
+		{
+			char const* const text = json_string_value(json);
+
+			value = std::chrono::nanoseconds{std::stoull(text)};
+			result = true;
+		}
+		return result;
+	}
+}
+
 //////////////////////////////////////////////////////////
 //
 // class Clock
@@ -177,11 +201,17 @@ std::chrono::nanoseconds Clock::getGateTime(unsigned int const divisorIndex)cons
 
 json_t *Clock::toJson()
 {
-	json_t *rootNode = json_object();
-	auto const nanoSecondInterval = std::to_string(m_interval.count());
+	json_t* const rootNode = json_object();
+	json_t* const outputArrayNode = json_array();
 
-	json_object_set_new(rootNode, "interval", json_string(nanoSecondInterval.c_str()));
+	json_object_set_new(rootNode, "interval", serialize(m_interval));
 	json_object_set_new(rootNode, "state", json_integer(m_machine.currentStateKey()));
+	json_object_set_new(rootNode, "outputs", outputArrayNode);
+
+	for (auto const& output : m_outputs)
+	{
+		json_array_append(outputArrayNode, output.toJson());
+	}
 	return rootNode;
 }
 
@@ -189,14 +219,22 @@ void Clock::fromJson(json_t *root)
 {
 	json_t* const intervalNode = json_object_get(root, "interval");
 	json_t* const stateNode = json_object_get(root, "state");
+	json_t* const outputArrayNode = json_object_get(root, "outputs");
 
 	if (intervalNode && json_is_string(intervalNode) &&
-		stateNode && json_is_integer(stateNode))
+		stateNode && json_is_integer(stateNode) &&
+		outputArrayNode && json_is_array(outputArrayNode))
 	{
-		std::string const intervalText{json_string_value(intervalNode)};
-
-		m_interval = std::chrono::nanoseconds{std::stoull(intervalText)};
+		deserialize(intervalNode, m_interval);
 		m_machine.change(json_integer_value(stateNode), *this);
+
+		std::size_t index = 0u;
+		json_t* value = nullptr;
+
+		json_array_foreach(outputArrayNode, index, value)
+		{
+			m_outputs[index].fromJson(value);
+		}
 	}
 }
 
@@ -325,6 +363,35 @@ bool Clock::ClockOutput::gateStep(std::chrono::nanoseconds const dt)
 		result = true;
 	}
 	return result;
+}
+
+json_t *Clock::ClockOutput::toJson()const
+{
+	json_t *rootNode = json_object();
+
+	json_object_set_new(rootNode, "gate_time", serialize(m_gateTime));
+	json_object_set_new(rootNode, "output_voltage", json_real(m_outputVoltage));
+	json_object_set_new(rootNode, "divisor", json_integer(m_divisor));
+	json_object_set_new(rootNode, "resolution_index", json_integer(m_resolutionIndex));
+	return rootNode;
+}
+
+void Clock::ClockOutput::fromJson(json_t *root)
+{
+	auto* const gateTimeNode = json_object_get(root, "gate_time");
+	auto* const outputVoltageNode = json_object_get(root, "output_voltage");
+	auto* const divisorNode = json_object_get(root, "divisor");
+	auto* const resolutionIndexNode = json_object_get(root, "resolution_index");
+
+	if (gateTimeNode && outputVoltageNode && divisorNode && resolutionIndexNode &&
+		json_is_string(gateTimeNode) && json_is_real(outputVoltageNode) &&
+		json_is_integer(divisorNode) && json_is_integer(resolutionIndexNode))
+	{
+		deserialize(gateTimeNode, m_gateTime);
+		m_outputVoltage = json_real_value(outputVoltageNode);
+		m_divisor = json_integer_value(divisorNode);
+		m_resolutionIndex = json_integer_value(resolutionIndexNode);
+	}
 }
 
 //////////////////////////////////////////////////////////

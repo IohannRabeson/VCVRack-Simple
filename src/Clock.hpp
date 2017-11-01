@@ -24,6 +24,7 @@ class Clock : public rack::Module
 	template <unsigned int Index> class ChangeResolutionState;
 public:
 	static std::chrono::nanoseconds const OneSecond;
+	static constexpr std::size_t ClockOutputCount = 4u;
 
 	enum InputIds
 	{
@@ -135,6 +136,9 @@ private:
 
 		void setResolutionIndex(std::size_t const index);
 		std::size_t getResolutionIndex()const;
+
+		json_t *toJson()const;
+		void fromJson(json_t *root);
 	private:
 		bool gateStep(std::chrono::nanoseconds const dt);
 	private:
@@ -154,7 +158,7 @@ private:
 	float m_previousValue = 0.f;
 	rack::SchmittTrigger m_inputResetTrigger;
 	rack::SchmittTrigger m_buttonTrigger;
-	std::array<ClockOutput, 4u> m_outputs;
+	std::array<ClockOutput, ClockOutputCount> m_outputs;
 	bool m_clockTrigger = false;
 };
 
