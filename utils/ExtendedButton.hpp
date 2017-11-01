@@ -25,9 +25,9 @@ public:
 		m_callback = std::move(callback);
 	}
 
-	void onChange() override
+	void onChange(rack::EventChange& e) override
 	{
-		T::onChange();
+		T::onChange(e);
 		if (m_trigger.process(T::value) && m_callback)
 		{
 			m_callback();
