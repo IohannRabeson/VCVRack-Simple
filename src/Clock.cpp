@@ -34,17 +34,18 @@ namespace
 //
 
 unsigned int const Clock::Resolution = 128u;
-unsigned int const Clock::MaxClockPosition = Clock::Resolution * 512u * 8u;
+unsigned int const Clock::MaxClockPosition = Clock::Resolution * 512u * 16u;
 
 std::vector<std::pair<unsigned int, std::string>> const Clock::Resolutions =
 {
+	{Clock::Resolution * 16, "4 / 1"},
 	{Clock::Resolution * 8, "2 / 1"},
 	{Clock::Resolution * 4, "1 / 1"},
 	{Clock::Resolution * 2, "1 / 2"},
 	{Clock::Resolution, "1 / 4"},
 	{Clock::Resolution / 3, "1 / 4T"},
 	{Clock::Resolution / 2, "1 / 8"},
-	{Clock::Resolution / 6, "1 / 4T"},
+	{Clock::Resolution / 6, "1 / 8T"},
 	{Clock::Resolution / 4, "1 / 16"},
 	{Clock::Resolution / 12, "1 / 16T"},
 	{Clock::Resolution / 8, "1 / 32"},
@@ -59,7 +60,6 @@ Clock::Clock() :
 	rack::Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS),
 	m_interval(OneSecond)
 {
-	m_machine.registerStateType<ChangeFrequencyState>(Clock::STATE_FREQUENCY);
 	m_machine.registerStateType<ChangeBPMState>(Clock::STATE_BPM);
 
 	m_machine.registerStateType<ChangeResolutionState<0u>>(Clock::STATE_RESOLUTION_0);
@@ -165,7 +165,7 @@ void Clock::step()
 
 		if (!(std::abs(currentValue - m_previousValue) < std::numeric_limits<float>::epsilon()))
 		{
-			currentState.onValueChanged(currentValue);
+			currentState.setValue(currentValue);
 		}
 		m_previousValue = currentValue;
 	}
@@ -277,7 +277,7 @@ void Clock::setResolutionIndex(unsigned int const index, std::size_t const resol
 	getOutput(index).setResolutionIndex(resolutionIndex);
 }
 
-std::size_t Clock::getResolutionIndex(unsigned int const index)
+std::size_t Clock::getResolutionIndex(unsigned int const index) const
 {
 	return getOutput(index).getResolutionIndex();
 }
@@ -396,38 +396,6 @@ void Clock::ClockOutput::fromJson(json_t *root)
 
 //////////////////////////////////////////////////////////
 //
-// class Clock::ChangeFrequencyState
-//
-class Clock::ChangeFrequencyState : public ClockState
-{
-	using Seconds = std::chrono::duration<float>;
-	static constexpr char const* const Format = "Main\n  %.2fHz";
-public:
-	explicit ChangeFrequencyState(Clock& clock) :
-		ClockState("Freq", clock)
-	{
-	}
-
-	void beginState()
-	{
-		setCurrentText(formatValue(Format, nanosecondsToFrequency(getInterval())));
-	}
-
-	void onValueChanged(float value)
-	{
-		auto const f = m_minFrequency + (m_maxFrequency - m_minFrequency) * value;
-		auto const interval = secondsToNanoseconds(Seconds{1.f / f});
-
-		setInterval(interval);
-		setCurrentText(formatValue(Format, nanosecondsToFrequency(interval)));
-	}
-private:
-	float const m_minFrequency = 0.01f;
-	float const m_maxFrequency = 20.f;
-};
-
-//////////////////////////////////////////////////////////
-//
 // class Clock::ChangeBPMState
 //
 class Clock::ChangeBPMState : public ClockState
@@ -439,20 +407,19 @@ public:
 		ClockState("BPM", clock)
 	{
 	}
-
-	void beginState()
+private:
+	std::string formatCurrentText() const override
 	{
-		auto const bpm = nanosecondToBpm(getInterval());
+		auto const bpm = nanosecondToBpm(clock().getInterval() * Clock::Resolution);
 
-		setCurrentText(formatValue(Format, static_cast<unsigned int>(bpm)));
+		return formatValue(Format, static_cast<unsigned int>(bpm));
 	}
 
-	void onValueChanged(float value)
+	void onValueChanged(float const value) override
 	{
 		auto const bpm = m_minBPM + (m_maxBPM - m_minBPM) * value;
 
 		setInterval(bpmToNanoseconds(bpm));
-		setCurrentText(formatValue(Format, static_cast<unsigned int>(bpm)));
 	}
 private:
 	unsigned int const m_minBPM = 1u;
@@ -472,18 +439,17 @@ public:
 		ClockState("Divisor", clock)
 	{
 	}
-
-	void beginState()
+private:
+	std::string formatCurrentText() const override
 	{
-		setCurrentText(formatValue(Format, Index, getDivisor(Index)));
+		return formatValue(Format, Index, clock().getDivisor(Index));
 	}
 
-	void onValueChanged(float value)
+	void onValueChanged(float const value) override
 	{
 		auto const divisor = m_minDivisor + static_cast<unsigned int>(static_cast<float>(m_maxDivisor - m_minDivisor) * value);
 
 		setDivisor(Index, divisor);
-		setCurrentText(formatValue(Format, Index, divisor));
 	}
 private:
 	unsigned int m_minDivisor = 1u;
@@ -504,22 +470,21 @@ public:
 		ClockState("Resolution", clock)
 	{
 	}
-
-	void beginState()
+private:
+	std::string formatCurrentText() const override
 	{
 		auto const resolutionIndex = clock().getResolutionIndex(Index);
 
-		setCurrentText(formatValue(Format, Index, Resolutions[resolutionIndex].second.c_str()));
+		return formatValue(Format, Index, Resolutions[resolutionIndex].second.c_str());
 	}
 
-	void onValueChanged(float value)
+	void onValueChanged(float const value) override
 	{
 		assert(Resolutions.size() > 0);
 
 		std::size_t resolutionIndex = static_cast<float>(Clock::Resolutions.size() - 1) * value;
 
 		clock().setResolutionIndex(Index, resolutionIndex);
-		setCurrentText(formatValue(Format, Index, Resolutions[resolutionIndex].second.c_str()));
 	}
 };
 
@@ -537,20 +502,19 @@ public:
 		ClockState("Gate time", clock)
 	{
 	}
-
-	void beginState()
+private:
+	std::string formatCurrentText() const override
 	{
 		auto const gateTime = std::chrono::duration_cast<Seconds>(getGateTime(Index));
 
-		setCurrentText(formatValue(Format, Index, gateTime.count()));
+		return formatValue(Format, Index, gateTime.count());
 	}
 
-	void onValueChanged(float value)
+	void onValueChanged(float const value) override
 	{
 		auto const gateTime = m_minTime + (m_maxTime - m_minTime) * value;
 
 		setGateTime(Index, std::chrono::duration_cast<std::chrono::nanoseconds>(gateTime));
-		setCurrentText(formatValue(Format, Index, gateTime.count()));
 	}
 private:
 	Seconds const m_minTime{0.f};
@@ -571,19 +535,19 @@ public:
 	{
 	}
 
-	void beginState()
+private:
+	std::string formatCurrentText() const override
 	{
 		auto const voltage = getOutputVoltage(Index);
 
-		setCurrentText(formatValue(Format, Index, voltage));
+		return formatValue(Format, Index, voltage);
 	}
 
-	void onValueChanged(float value)
+	void onValueChanged(float const value) override
 	{
 		auto const voltage = m_min + (m_max - m_min) * value;
 
 		setOutputVoltage(Index, voltage);
-		setCurrentText(formatValue(Format, Index, voltage));
 	}
 private:
 	float const m_min = 0.f;

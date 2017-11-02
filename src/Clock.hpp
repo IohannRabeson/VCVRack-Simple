@@ -13,7 +13,6 @@ class Clock : public rack::Module
 	static unsigned int const MaxClockPosition;
 
 	class ClockState;
-	class ChangeFrequencyState;
 	class ChangeBPMState;
 	class ChangeRatioState;
 	class ClockOutput;
@@ -60,7 +59,6 @@ public:
 	enum StateIds : unsigned int
 	{
 		STATE_BPM,
-		STATE_FREQUENCY,
 
 		STATE_RESOLUTION_0,
 		STATE_DIVISION_0,
@@ -106,7 +104,7 @@ public:
 	float getOutputVoltage(unsigned int const index) const;
 
 	void setResolutionIndex(unsigned int const index, std::size_t const resolutionIndex);
-	std::size_t getResolutionIndex(unsigned int const index);
+	std::size_t getResolutionIndex(unsigned int const index) const;
 private:
 	void updateClockTrigger();
 	void updateCurrentState();
@@ -175,18 +173,25 @@ public:
 	{
 	}
 
-	void stepState()
+	void beginState() override
 	{
+		m_currentText = formatCurrentText();
 	}
-
-	void endState() {}
-
-	virtual void onValueChanged(float value) = 0;
+	void stepState() override {}
+	void endState() override {}
+	void setValue(float const value)
+	{
+		onValueChanged(value);
+		m_currentText = formatCurrentText();
+	}
 
 	std::string const& getCurrentText()const
 	{
 		return m_currentText;
 	}
+private:
+	virtual std::string formatCurrentText()const = 0;
+	virtual void onValueChanged(float const value) = 0;
 protected:
 	template <class ... T>
 	static std::string formatValue(char const* const format, T&& ... values)
@@ -197,10 +202,8 @@ protected:
 		return Buffer.get();
 	}
 
-	Clock& clock()
-	{
-		return m_clock;
-	}
+	Clock& clock() { return m_clock; }
+	Clock const& clock() const { return m_clock; }
 
 	void setInterval(std::chrono::nanoseconds interval)
 	{
@@ -245,11 +248,6 @@ protected:
 	void reset()
 	{
 		m_clock.restart();
-	}
-
-	void setCurrentText(std::string const& text)
-	{
-		m_currentText = text;
 	}
 private:
 	Clock& m_clock;
