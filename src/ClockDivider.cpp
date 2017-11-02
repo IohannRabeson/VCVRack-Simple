@@ -162,9 +162,9 @@ struct ClockDividerKnob : rack::RoundSmallBlackSnapKnob
 		}
 	}
 
-	void onChange() override
+	void onChange(rack::EventChange& e) override
 	{
-		rack::RoundSmallBlackSnapKnob::onChange();
+		rack::RoundSmallBlackSnapKnob::onChange(e);
 		if (linkedLabel)
 		{
 			linkedLabel->text = formatCurrentValue();
