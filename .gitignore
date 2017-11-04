@@ -4,6 +4,7 @@ dist
 # Jekyll
 docs/_site
 Gemfile.lock
+.sass-cache
 
 # Compiled Object files
 *.slo

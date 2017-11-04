@@ -2,6 +2,7 @@
 name: "Recorder"
 key: recorder
 layout: module
+add_version: 0.4.0
 ---
 A simple stereo WAV recorder.
 
