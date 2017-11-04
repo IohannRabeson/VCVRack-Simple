@@ -26,3 +26,6 @@ Compilation is tested on Linux with gcc-7.
 
 ### Osx
 Compilation is tested on Osx with clang.
+
+### Windows
+Compilation is tested with the recommended setup for Rack, using MSys2.
