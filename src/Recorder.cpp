@@ -21,6 +21,8 @@
 class Recorder : public rack::Module
 {
 public:
+	static char const* const NoneLabel;
+
 	enum InputIds
 	{
 		INPUT_LEFT_IN = 0,
@@ -185,7 +187,7 @@ public:
 		outputs.at(OUTPUT_START_STOP).value = 0.f;
 		m_stateMachine.step();
 		m_redLightControl.step();
-		lights.at(FILE_LIGHT).value = m_outputFilePath.empty() ? 0.f : 1.f;
+		lights.at(FILE_LIGHT).value = (m_outputFilePath.empty() || m_outputFilePath == Recorder::NoneLabel) ? 0.f : 1.f;
 		lights.at(MAIN_LIGHT).value = m_redLightControl.lightValue();
 	}
 private:
@@ -196,6 +198,8 @@ private:
 	rack::SchmittTrigger m_armTrigger;
 	std::string m_outputFilePath;
 };
+
+char const* const Recorder::NoneLabel = "<none>";
 
 namespace Helpers
 {
@@ -218,6 +222,8 @@ namespace Helpers
 		return port;
 	}
 }
+
+
 
 RecorderWidget::RecorderWidget() :
 	m_recorder(new Recorder),
@@ -262,7 +268,7 @@ RecorderWidget::RecorderWidget() :
 	createLight<rack::SmallLight<rack::RedLight>>(rack::Vec{68, Top + 6}, Recorder::MAIN_LIGHT);
 	createLight<rack::TinyLight<rack::GreenLight>>(rack::Vec{16.5f, Top - 23.5f}, Recorder::FILE_LIGHT);
 
-	m_label->text = "<none>";
+	m_label->text = Recorder::NoneLabel;
 	m_label->box.pos.x = 22;
 	m_label->box.pos.y = Top - 32;
 	selectFileButton->setCallback(std::bind(&RecorderWidget::onSelectFileButtonClicked, this));
@@ -296,7 +302,7 @@ bool RecorderWidget::selectOutputFile()
 	}
 	else
 	{
-		setOutputFilePath("<none>");
+		setOutputFilePath(Recorder::NoneLabel);
 	}
 	glfwFocusWindow(rack::gWindow);
 	return result;
