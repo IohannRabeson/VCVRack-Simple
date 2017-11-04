@@ -11,6 +11,16 @@ More infos and user manuals:
 https://iohannrabeson.github.io/VCVRack-Simple/
 
 ## Build from sources
+
+Clone this repository into the Rack's plugins directory then build using Make:
+
+``` bash
+cd Rack/plugins/
+git clone https://github.com/IohannRabeson/VCVRack-Simple.git
+cd VCVRack-Simple
+make
+```
+
 ### Linux
 Compilation is tested on Linux with gcc-7.
 
