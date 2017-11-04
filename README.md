@@ -10,7 +10,7 @@ Modules for [VCVRack](https://github.com/VCVRack/Rack).
 More infos and user manuals:
 https://iohannrabeson.github.io/VCVRack-Simple/
 
-## Build from sources
+## Building from sources
 
 Clone this repository into the Rack's plugins directory then build using Make:
 
