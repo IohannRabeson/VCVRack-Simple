@@ -1,3 +1,10 @@
+# VCVRack dist folder
+dist
+
+# Jekyll
+docs/_site
+Gemfile.lock
+
 # Compiled Object files
 *.slo
 *.lo
@@ -58,5 +65,3 @@ profiling
 # QT creator
 *.autosave
 
-# VCVRack dist folder
-dist
