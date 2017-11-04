@@ -11,3 +11,10 @@
 #    - link: https://www.dl.dropboxusercontent.com/s/4qp2iv4v0luyfmj/Simple-0.4.0.zip?dl=0
 #      label: "MacOS zip"
 #
+- version: 0.5.0
+  downloads:
+    - link: https://www.dl.dropboxusercontent.com/s/4qp2iv4v0luyfmj/Simple-0.4.0.zip?dl=0
+      label: "Windows zip"
+    - link: https://www.dl.dropboxusercontent.com/s/4qp2iv4v0luyfmj/Simple-0.4.0.zip?dl=0
+      label: "MacOS zip"
+
