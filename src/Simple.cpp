@@ -12,8 +12,8 @@ void init(rack::Plugin *p)
 #ifdef VERSION
 	p->version = TOSTRING(VERSION);
 #endif
-	p->addModel(rack::createModel<ButtonTriggerWidget>("IO-Simple", "Simple", "IO-ButtonTrigger", "Button Trigger"));
-	p->addModel(rack::createModel<ClockDividerWidget>("IO-Simple", "Simple", "IO-ClockDivider", "Clock Divider"));
-	p->addModel(rack::createModel<RecorderWidget>("IO-Simple", "Simple", "IO-Recorder", "Recorder"));
-	p->addModel(rack::createModel<ClockWidget>("IO-Simple", "Simple", "IO-Clock", "Clock"));
+	p->addModel(rack::createModel<ButtonTriggerWidget>("Simple", "IO-ButtonTrigger", "Button Trigger", rack::UTILITY_TAG));
+	p->addModel(rack::createModel<ClockDividerWidget>("Simple", "IO-ClockDivider", "Clock Divider", rack::CLOCK_TAG));
+	p->addModel(rack::createModel<RecorderWidget>("Simple", "IO-Recorder", "Recorder", rack::UTILITY_TAG));
+	p->addModel(rack::createModel<ClockWidget>("Simple", "IO-Clock", "Clock", rack::CLOCK_TAG));
 }
