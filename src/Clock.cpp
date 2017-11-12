@@ -82,6 +82,46 @@ Clock::Clock() :
 	m_machine.registerStateType<ChangeGateTimeState<3u>>(Clock::STATE_GATE_TIME_3);
 	m_machine.registerStateType<ChangeOutputVoltageState<3u>>(Clock::STATE_VOLTAGE_3);
 
+	m_machine.registerStateType<ChangeResolutionState<3u>>(Clock::STATE_RESOLUTION_4);
+	m_machine.registerStateType<ChangeDivisorState<3u>>(Clock::STATE_DIVISION_4);
+	m_machine.registerStateType<ChangeGateTimeState<3u>>(Clock::STATE_GATE_TIME_4);
+	m_machine.registerStateType<ChangeOutputVoltageState<3u>>(Clock::STATE_VOLTAGE_4);
+
+	m_machine.registerStateType<ChangeResolutionState<5u>>(Clock::STATE_RESOLUTION_5);
+	m_machine.registerStateType<ChangeDivisorState<5u>>(Clock::STATE_DIVISION_5);
+	m_machine.registerStateType<ChangeGateTimeState<5u>>(Clock::STATE_GATE_TIME_5);
+	m_machine.registerStateType<ChangeOutputVoltageState<5u>>(Clock::STATE_VOLTAGE_5);
+
+	m_machine.registerStateType<ChangeResolutionState<6u>>(Clock::STATE_RESOLUTION_6);
+	m_machine.registerStateType<ChangeDivisorState<6u>>(Clock::STATE_DIVISION_6);
+	m_machine.registerStateType<ChangeGateTimeState<6u>>(Clock::STATE_GATE_TIME_6);
+	m_machine.registerStateType<ChangeOutputVoltageState<6u>>(Clock::STATE_VOLTAGE_6);
+
+	m_machine.registerStateType<ChangeResolutionState<7u>>(Clock::STATE_RESOLUTION_7);
+	m_machine.registerStateType<ChangeDivisorState<7u>>(Clock::STATE_DIVISION_7);
+	m_machine.registerStateType<ChangeGateTimeState<7u>>(Clock::STATE_GATE_TIME_7);
+	m_machine.registerStateType<ChangeOutputVoltageState<7u>>(Clock::STATE_VOLTAGE_7);
+
+	m_machine.registerStateType<ChangeResolutionState<8u>>(Clock::STATE_RESOLUTION_8);
+	m_machine.registerStateType<ChangeDivisorState<8u>>(Clock::STATE_DIVISION_8);
+	m_machine.registerStateType<ChangeGateTimeState<8u>>(Clock::STATE_GATE_TIME_8);
+	m_machine.registerStateType<ChangeOutputVoltageState<8u>>(Clock::STATE_VOLTAGE_8);
+
+	m_machine.registerStateType<ChangeResolutionState<9u>>(Clock::STATE_RESOLUTION_9);
+	m_machine.registerStateType<ChangeDivisorState<9u>>(Clock::STATE_DIVISION_9);
+	m_machine.registerStateType<ChangeGateTimeState<9u>>(Clock::STATE_GATE_TIME_9);
+	m_machine.registerStateType<ChangeOutputVoltageState<9u>>(Clock::STATE_VOLTAGE_9);
+
+	m_machine.registerStateType<ChangeResolutionState<10u>>(Clock::STATE_RESOLUTION_10);
+	m_machine.registerStateType<ChangeDivisorState<10u>>(Clock::STATE_DIVISION_10);
+	m_machine.registerStateType<ChangeGateTimeState<10u>>(Clock::STATE_GATE_TIME_10);
+	m_machine.registerStateType<ChangeOutputVoltageState<10u>>(Clock::STATE_VOLTAGE_10);
+
+	m_machine.registerStateType<ChangeResolutionState<11u>>(Clock::STATE_RESOLUTION_11);
+	m_machine.registerStateType<ChangeDivisorState<11u>>(Clock::STATE_DIVISION_11);
+	m_machine.registerStateType<ChangeGateTimeState<11u>>(Clock::STATE_GATE_TIME_11);
+	m_machine.registerStateType<ChangeOutputVoltageState<11u>>(Clock::STATE_VOLTAGE_11);
+
 	m_machine.change(Clock::STATE_BPM, *this);
 	restart();
 }
@@ -307,7 +347,7 @@ void Clock::ClockOutput::recallDefaultValues()
 	m_gateTime = std::chrono::nanoseconds{0};
 	m_outputVoltage = 10.f;
 	m_divisor = 1u;
-	m_resolutionIndex = 3u;
+	m_resolutionIndex = 4u;
 }
 
 void Clock::ClockOutput::setDivisor(unsigned int divisor)

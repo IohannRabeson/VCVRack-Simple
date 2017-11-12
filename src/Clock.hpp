@@ -23,7 +23,7 @@ class Clock : public rack::Module
 	template <unsigned int Index> class ChangeResolutionState;
 public:
 	static std::chrono::nanoseconds const OneSecond;
-	static constexpr std::size_t ClockOutputCount = 4u;
+	static constexpr std::size_t ClockOutputCount = 12u;
 
 	enum InputIds
 	{
@@ -48,6 +48,10 @@ public:
 		OUTPUT_CLOCK_5,
 		OUTPUT_CLOCK_6,
 		OUTPUT_CLOCK_7,
+		OUTPUT_CLOCK_8,
+		OUTPUT_CLOCK_9,
+		OUTPUT_CLOCK_10,
+		OUTPUT_CLOCK_11,
 		NUM_OUTPUTS
 	};
 
@@ -79,6 +83,46 @@ public:
 		STATE_DIVISION_3,
 		STATE_GATE_TIME_3,
 		STATE_VOLTAGE_3,
+
+		STATE_RESOLUTION_4,
+		STATE_DIVISION_4,
+		STATE_GATE_TIME_4,
+		STATE_VOLTAGE_4,
+
+		STATE_RESOLUTION_5,
+		STATE_DIVISION_5,
+		STATE_GATE_TIME_5,
+		STATE_VOLTAGE_5,
+
+		STATE_RESOLUTION_6,
+		STATE_DIVISION_6,
+		STATE_GATE_TIME_6,
+		STATE_VOLTAGE_6,
+
+		STATE_RESOLUTION_7,
+		STATE_DIVISION_7,
+		STATE_GATE_TIME_7,
+		STATE_VOLTAGE_7,
+
+		STATE_RESOLUTION_8,
+		STATE_DIVISION_8,
+		STATE_GATE_TIME_8,
+		STATE_VOLTAGE_8,
+
+		STATE_RESOLUTION_9,
+		STATE_DIVISION_9,
+		STATE_GATE_TIME_9,
+		STATE_VOLTAGE_9,
+
+		STATE_RESOLUTION_10,
+		STATE_DIVISION_10,
+		STATE_GATE_TIME_10,
+		STATE_VOLTAGE_10,
+
+		STATE_RESOLUTION_11,
+		STATE_DIVISION_11,
+		STATE_GATE_TIME_11,
+		STATE_VOLTAGE_11,
 
 		STATE_COUNT
 	};
