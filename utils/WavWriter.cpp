@@ -24,9 +24,9 @@ std::string WavWriter::getErrorText(Errors const error)
 	return text;
 }
 
-WavWriter::WavWriter()
+WavWriter::WavWriter() :
+    m_running(false)
 {
-	m_running = false;
 	// The buffer can store 1 seconds
 	m_buffer.reserve(rack::engineGetSampleRate());
 }
@@ -60,7 +60,7 @@ void WavWriter::push(Frame const& frame)
 	m_buffer.push_back(frame);
 }
 
-void WavWriter::run(std::string const outputFilePath)
+void WavWriter::run(std::string const& outputFilePath)
 {
 	static std::chrono::milliseconds const WriteTimeInterval{250};
 	// The internal buffer can store 1 second of audio.

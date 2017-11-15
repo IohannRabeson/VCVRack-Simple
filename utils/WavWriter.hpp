@@ -43,7 +43,7 @@ public:
 	/*! Push data to the buffer. */
 	void push(Frame const& frame);
 private:
-	void run(std::string const outputFilePath);
+	void run(std::string const& outputFilePath);
 	void finishThread();
 private:
 	std::vector<Frame> m_buffer;

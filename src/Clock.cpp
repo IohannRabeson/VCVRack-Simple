@@ -123,6 +123,7 @@ Clock::Clock() :
 	m_machine.registerStateType<ChangeOutputVoltageState<11u>>(Clock::STATE_VOLTAGE_11);
 
 	m_machine.change(Clock::STATE_BPM, *this);
+    m_previousValue = params.at(Clock::PARAM_VALUE).value;
 	restart();
 }
 
@@ -153,7 +154,7 @@ void Clock::updateClockTrigger()
 	m_current += elaspedTime;
 	if (m_current >= interval)
 	{
-		m_current -= interval;
+		m_current = std::chrono::nanoseconds{0};
 		// The maximum divisor is 512 so we can have at most
 		// Resolution * 512u ticks to count.
 		m_clockPosition = (m_clockPosition + 1) % (MaxClockPosition);
@@ -202,8 +203,9 @@ void Clock::step()
 	{
 		auto& currentState = static_cast<Clock::ClockState&>(m_machine.currentState());
 		auto const currentValue = params.at(Clock::PARAM_VALUE).value;
+        auto const delta = currentValue - m_previousValue;
 
-		if (!(std::abs(currentValue - m_previousValue) < std::numeric_limits<float>::epsilon()))
+		if (!(std::abs(delta) < std::numeric_limits<float>::epsilon()))
 		{
 			currentState.setValue(currentValue);
 		}
