@@ -115,7 +115,7 @@ public:
 
 		light->box.pos = pos;
 		light->module = this->module;
-		light->lightId = lightId;
+		light->firstLightId = lightId;
 		rack::ModuleWidget::addChild(light);
 		return light;
 	}
