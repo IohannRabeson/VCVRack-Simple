@@ -278,7 +278,9 @@ RecorderWidget::RecorderWidget() :
 
 void RecorderWidget::onSelectFileButtonClicked()
 {
-	if (!m_recorder->isArmed())
+    std::cout << "armed: " << m_recorder->isArmed() << std::endl;
+    std::cout << "recording: " << m_recorder->isRecording() << std::endl;
+	if (!m_recorder->isArmed() && !m_recorder->isRecording())
 	{
 		selectOutputFile();
 	}

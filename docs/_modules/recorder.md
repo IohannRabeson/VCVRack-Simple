@@ -1,6 +1,7 @@
 ---
 name: "Recorder"
 key: recorder
+version: 0.0.0
 layout: module
 add_version: 0.4.0
 ---

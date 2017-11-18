@@ -1,6 +1,7 @@
 ---
 name: "Clock divider"
 key: clock_divider
+version: 0.0.0
 layout: module
 add_version: 0.4.0
 ---

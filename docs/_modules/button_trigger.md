@@ -1,6 +1,7 @@
 ---
 name: "Button trigger"
 key: button_trigger
+version: 0.0.0
 layout: module
 add_version: 0.4.0
 ---

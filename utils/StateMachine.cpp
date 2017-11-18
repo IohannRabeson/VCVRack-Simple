@@ -34,13 +34,14 @@ void StateMachine::change(unsigned int index)
 	assert (it != m_states.end());
 
 	auto const beginIt = m_begins.find(index);
-	auto const endIt = m_ends.find(index);
+	auto const endIt = m_ends.find(m_currentIndex);
 
 	if (endIt != m_ends.end())
 	{
 		endIt->second();
 	}
 	m_currentState = it->second;
+    m_currentIndex = index;
 	if (beginIt != m_begins.end())
 	{
 		beginIt->second();

@@ -2,17 +2,16 @@
 #define FOURTEENSEGMENTDISPLAY_HPP
 #include <rack.hpp>
 
-class FourteenSegmentDisplay : public rack::Widget
+class TextDisplay : public rack::Widget
 {
 public:
-	explicit FourteenSegmentDisplay(std::size_t const maxCharacters = 2u);
+	explicit TextDisplay();
 
 	void setText(std::string const& text);
 	void setFontSize(float const size);
 	void draw(NVGcontext* vg) override;
 private:
 	std::shared_ptr<rack::Font> const m_font;
-	std::size_t const m_maxCharacters;
 	std::string m_displayedText;
 	float m_fontSize = 20.f;
 	NVGcolor m_onColor = nvgRGB(0, 0x0, 0);
