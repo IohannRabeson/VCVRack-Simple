@@ -3,6 +3,7 @@ name: "Clock"
 key: clock
 version: preview
 layout: module
+add_version: 0.5.0
 ---
 
 This clock module is inspired of the [ALM001 / Pamela's Workout](http://busycircuits.com/alm001/).  
