@@ -32,7 +32,7 @@ Compilation is tested with the recommended setup for Rack, using MSys2.
 
 ## Website
 The website use Jekyll.
-You can start a server using make:
+You can start a local server using:
 ``` bash
 make serve 
 ```
