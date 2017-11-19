@@ -29,3 +29,10 @@ Compilation is tested on Osx with clang.
 
 ### Windows
 Compilation is tested with the recommended setup for Rack, using MSys2.
+
+## Website
+The website use Jekyll.
+You can start a server using make:
+``` bash
+make serve 
+```
