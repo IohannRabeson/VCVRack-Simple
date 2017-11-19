@@ -6,8 +6,8 @@
 
 - version: 0.5.0
   downloads:
-    - link: https://github.com/IohannRabeson/VCVRack-Simple/releases/download/untagged-12ff06f417549b7ea771/VCVRack-Simple-0.5.0-win.zip
+    - link: https://www.dropbox.com/s/yxp0mmlod9826g4/VCVRack-Simple-0.5.0-win.zip?dl=0
       label: "Windows zip"
-    - link: https://github.com/IohannRabeson/VCVRack-Simple/releases/download/untagged-12ff06f417549b7ea771/VCVRack-Simple-0.5.0-mac.zip
+    - link: https://www.dropbox.com/s/g657vbzji8galep/VCVRack-Simple-0.5.0-mac.zip?dl=0
       label: "MacOS zip"
 
