@@ -10,8 +10,7 @@
       label: "Windows zip"
     - link: https://www.dropbox.com/s/g657vbzji8galep/VCVRack-Simple-0.5.0-mac.zip?dl=0
       label: "MacOS zip"
-  notes:
-  "<ul>
+  notes: "<ul>
     <li>New Clock module (beta)</li>
     <li>Improved Recorder (bugfixes, improved panel)</li>
     <li>Improved Clock Divider</li>
