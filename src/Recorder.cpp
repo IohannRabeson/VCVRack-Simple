@@ -306,7 +306,6 @@ bool RecorderWidget::selectOutputFile()
 	{
 		setOutputFilePath(Recorder::NoneLabel);
 	}
-	glfwFocusWindow(rack::gWindow);
 	return result;
 }
 

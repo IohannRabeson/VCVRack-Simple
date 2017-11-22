@@ -11,7 +11,7 @@ SOURCES = src/Simple.cpp					\
 		  utils/WavWriter.cpp				\
 		  utils/StateMachine.cpp			\
 		  utils/Path.cpp					\
-		  utils/TextDisplay.cpp	\
+		  utils/TextDisplay.cpp	            \
 		  utils/VuMeter.cpp					\
 		  utils/write_wav.c
 
@@ -19,18 +19,6 @@ SOURCES = src/Simple.cpp					\
 FLAGS += -I"."
 
 include ../../plugin.mk
-
-ifeq ($(ARCH), lin)
-	LDFLAGS += -L../../dep/lib -lglfw
-endif
-
-ifeq ($(ARCH), mac)
-	LDFLAGS += -L../../dep/lib -lglfw
-endif
-
-ifeq ($(ARCH), win)
-	LDFLAGS += -L../../dep/lib -lglfw3dll
-endif
 
 dist: all
 ifndef VERSION
