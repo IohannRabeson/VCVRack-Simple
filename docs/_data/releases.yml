@@ -6,14 +6,13 @@
 
 - version: 0.5.0
   downloads:
-    - link: https://www.dropbox.com/s/yxp0mmlod9826g4/VCVRack-Simple-0.5.0-win.zip?dl=0
+    - link: https://github.com/IohannRabeson/VCVRack-Simple/releases/download/v0.5.0/VCVRack-Simple-0.5.0-win.zip
       label: "Windows zip"
-    - link: https://www.dropbox.com/s/g657vbzji8galep/VCVRack-Simple-0.5.0-mac.zip?dl=0
+    - link: https://github.com/IohannRabeson/VCVRack-Simple/releases/download/v0.5.0/VCVRack-Simple-0.5.0-mac.zip
       label: "MacOS zip"
-  notes:
-  "<ul>
-    <li>New Clock module (beta)</li>
-    <li>Improved Recorder (bugfixes, improved panel)</li>
-    <li>Improved Clock Divider</li>
+  notes: "<ul>
+  <li>New clock module (still beta)</li>
+  <li>Added inputs for modulation to ClockDivider</li>
+  <li>Various bug fixes</li>
   </ul>"
 
