@@ -210,7 +210,7 @@ namespace Helpers
 								rack::Vec const& position, std::string const& label, float labelOffset,
 								float* light)
 	{
-		auto* const port = rack::createInput<InputPortClass>(position, module, inputId);
+		auto* const port = rack::Port::create<InputPortClass>(position, rack::Port::INPUT, module, inputId);
 
 		if (!label.empty())
 		{
@@ -229,15 +229,17 @@ namespace Helpers
 	}
 }
 
-ClockDividerWidget::ClockDividerWidget()
+class ClockDividerWidget : public ExtendedModuleWidget
+{
+public:
+	ClockDividerWidget(ClockDivider *module);
+};
+
+ClockDividerWidget::ClockDividerWidget(ClockDivider *module) : ExtendedModuleWidget(module)
 {
 	static constexpr float const Margin = 5.f;
 
-	auto* const module = new ClockDivider;
-
 	box.size = rack::Vec(15 * 10, 380);
-
-	setModule(module);
 
 	auto* const mainPanel = new rack::SVGPanel;
 
@@ -245,10 +247,10 @@ ClockDividerWidget::ClockDividerWidget()
 	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/clock_divider.svg")));
 	addChild(mainPanel);
 
-	addChild(rack::createScrew<rack::ScrewSilver>({15, 0}));
-	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, 0}));
-	addChild(rack::createScrew<rack::ScrewSilver>({15, box.size.y - 15}));
-	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, box.size.y - 15}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({15, 0}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({box.size.x - 30, 0}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({15, box.size.y - 15}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({box.size.x - 30, box.size.y - 15}));
 
 	// Setup input ports
 	auto* inputReset = createInput<rack::PJ301MPort>({0, 45}, ClockDivider::INPUT_RESET);
@@ -270,7 +272,8 @@ ClockDividerWidget::ClockDividerWidget()
 	// Setup clock outputs port and controls
 	for (auto i = 0u; i < 8u; ++i)
 	{
-		auto* clockControl = createParam<ClockDividerKnob>(pos, ClockDivider::CLOCK_DIVIDER_0 + i, 1.f, MaxDivider, defaultDividerValue);
+		auto* clockControl = rack::ParamWidget::create<ClockDividerKnob>(pos, module, ClockDivider::CLOCK_DIVIDER_0 + i, 1.f, MaxDivider, defaultDividerValue);
+		addParam(clockControl);
 
 		clockControl->snap = true;
 		pos.x += clockControl->box.size.x + Margin;
@@ -279,7 +282,8 @@ ClockDividerWidget::ClockDividerWidget()
 
 		modControlPos.y = pos.y + clockControl->box.size.y / 4.f;
 
-		auto* clockModControl = createParam<rack::RoundSmallBlackKnob>(modControlPos, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -MaxDivider, MaxDivider, 0.f);
+		auto* clockModControl = rack::ParamWidget::create<rack::RoundSmallBlackKnob>(modControlPos, module, ClockDivider::CLOCK_MOD_DIVIDER_0 + i, -MaxDivider, MaxDivider, 0.f);
+		addParam(clockModControl);
 
 		clockModControl->snap = true;
 		pos.x += clockModControl->box.size.x / 2.f + Margin;
@@ -295,7 +299,7 @@ ClockDividerWidget::ClockDividerWidget()
 		lightPos.x += 20.f;
 		lightPos.y += 2.f;
 
-		createLight<rack::SmallLight<rack::RedLight>>(lightPos, i);
+		addChild(rack::ModuleLightWidget::create<rack::SmallLight<rack::RedLight>>(lightPos, module, i));
 
 		pos.x += outputPortWidget->box.size.x;
 
@@ -316,3 +320,5 @@ ClockDividerWidget::ClockDividerWidget()
 	}
 	initialize();
 }
+
+rack::Model *modelClockDivider = rack::Model::create<ClockDivider, ClockDividerWidget>("Simple", "IO-ClockDivider", "Clock Divider", rack::CLOCK_TAG);

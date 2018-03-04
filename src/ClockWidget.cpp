@@ -4,11 +4,10 @@
 
 #include <utils/TextDisplay.hpp>
 
-ClockWidget::ClockWidget() :
-	m_clock(new Clock),
+ClockWidget::ClockWidget(Clock *module) : ExtendedModuleWidget(module),
+	m_clock(module),
 	m_segmentDisplay(new TextDisplay)
 {
-
 	auto* const mainPanel = new rack::SVGPanel;
 	auto const Margin = 5.f;
 
@@ -18,18 +17,19 @@ ClockWidget::ClockWidget() :
 	m_segmentDisplay->setFontSize(10.f);
 	mainPanel->box.size = box.size;
     mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/clock.svg")));
-	setModule(m_clock);
 	addChild(mainPanel);
 	addChild(m_segmentDisplay);
 
 	auto* const resetInput = createInput<rack::PJ301MPort>({}, Clock::INPUT_RESET);
-	auto* const knob = createParam<rack::RoundBlackKnob>({}, Clock::PARAM_VALUE, 0.0001f, 1.f, 0.5f);
-	createParam<rack::LEDButton>({5.f, 48.f}, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f);
+	auto* const knob = rack::ParamWidget::create<rack::RoundBlackKnob>({}, m_clock, Clock::PARAM_VALUE, 0.0001f, 1.f, 0.5f);
+	addParam(rack::ParamWidget::create<rack::LEDButton>({5.f, 48.f}, m_clock, Clock::PARAM_CHANGE_MODE, 0.f, 1.f, 0.f));
 
 	resetInput->box.pos.x = 15.f * 6.f - resetInput->box.size.x - 10;
 	resetInput->box.pos.y = 80.f;
 	knob->box.pos.x = (15.f * 6.f - knob->box.size.x) / 2.f;
 	knob->box.pos.y = resetInput->box.pos.y + resetInput->box.size.y + 5.f;
+
+	addParam(knob);
 
     float const initialYPos = knob->box.pos.y + knob->box.size.y + 15.f;
     float const outputMargin = 16.f;
@@ -58,3 +58,5 @@ void ClockWidget::step()
 	ExtendedModuleWidget::step();
 	m_segmentDisplay->setText(m_clock->getCurrentText());
 }
+
+rack::Model *modelClock = rack::Model::create<Clock, ClockWidget>("Simple", "IO-Clock", "Clock", rack::CLOCK_TAG);

@@ -57,35 +57,40 @@ namespace Helpers
 	}
 }
 
-ButtonTriggerWidget::ButtonTriggerWidget()
+class ButtonTriggerWidget : public rack::ModuleWidget
+{
+public:
+	ButtonTriggerWidget(ButtonTrigger *module);
+};
+
+ButtonTriggerWidget::ButtonTriggerWidget(ButtonTrigger *module) : ModuleWidget(module)
 {
 	static constexpr float const Margin = 5.f;
 	static constexpr float const Top = 50.f;
 	static constexpr float const ButtonSize = 28.f;
 
-	ButtonTrigger* const module = new ButtonTrigger;
-
 	box.size = rack::Vec(15 * 4, 380);
 
-	setModule(module);
 
 	auto* const mainPanel = new rack::SVGPanel();
 	mainPanel->box.size = box.size;
 	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/button_trigger.svg")));
 	addChild(mainPanel);
 
-	addChild(rack::createScrew<rack::ScrewSilver>({0, 0}));
-	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 15, 0}));
-	addChild(rack::createScrew<rack::ScrewSilver>({0, box.size.y - 15}));
-	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 15, box.size.y - 15}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({0, 0}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({box.size.x - 15, 0}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({0, box.size.y - 15}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({box.size.x - 15, box.size.y - 15}));
 
-	addParam(Helpers::centerHorizontaly(rack::createParam<rack::CKD6>(rack::Vec(Margin, Top), module, ButtonTrigger::TRIGGER, 0.f, 1.f, 0.f), box.size.x));
+	addParam(Helpers::centerHorizontaly(rack::ParamWidget::create<rack::CKD6>(rack::Vec(Margin, Top), module, ButtonTrigger::TRIGGER, 0.f, 1.f, 0.f), box.size.x));
 
 	rack::Vec pos(0, Top + 40.f);
 
 	for (auto i = 0u; i < ButtonTrigger::NUM_OUTPUTS; ++i)
 	{
-		addOutput(Helpers::centerHorizontaly(rack::createOutput<rack::PJ3410Port>(pos, module, i), box.size.x));
+		addOutput(Helpers::centerHorizontaly(rack::Port::create<rack::PJ3410Port>(pos, rack::Port::OUTPUT, module, i), box.size.x));
 		pos.y += ButtonSize + Margin;
 	}
 }
+
+rack::Model *modelButtonTrigger = rack::Model::create<ButtonTrigger, ButtonTriggerWidget>("Simple", "IO-ButtonTrigger", "Button Trigger", rack::UTILITY_TAG);

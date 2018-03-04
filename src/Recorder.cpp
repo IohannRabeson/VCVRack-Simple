@@ -11,7 +11,7 @@
 #include <utils/VuMeter.hpp>
 
 #include <dsp/digital.hpp>
-#include <../ext/osdialog/osdialog.h>
+#include "osdialog.h"
 
 #include <iostream> // DEBUG
 #include <cstdlib>
@@ -208,7 +208,7 @@ namespace Helpers
 								 	 int const inputId, rack::Vec const& position,
 								 	 std::string const& label)
 	{
-		auto* const port = rack::createInput<InputPortClass>(position, module, inputId);
+		auto* const port = rack::Port::create<InputPortClass>(position, rack::Port::INPUT, module, inputId);
 		auto* const labelWidget = new rack::Label;
 
 		labelWidget->text = label;
@@ -223,10 +223,25 @@ namespace Helpers
 	}
 }
 
+class RecorderWidget : public ExtendedModuleWidget
+{
+public:
+	RecorderWidget(Recorder *module);
 
+	void step() override;
+private:
+	void onSelectFileButtonClicked();
+	bool selectOutputFile();
+	void setOutputFilePath(std::string const& outputFilePath);
+private:
+	Recorder* const m_recorder;
+	rack::Label* const m_label;
+	VuMeter* const m_leftMeter;
+	VuMeter* const m_rightMeter;
+};
 
-RecorderWidget::RecorderWidget() :
-	m_recorder(new Recorder),
+RecorderWidget::RecorderWidget(Recorder *module) : ExtendedModuleWidget(module),
+	m_recorder(module),
 	m_label(new rack::Label),
 	m_leftMeter(new VuMeter({20.f, 180.f}, {15.f, 130.f})),
 	m_rightMeter(new VuMeter({15.f * 6.f - 15.f - 20.f, 180.f}, {15.f, 130.f}))
@@ -242,14 +257,13 @@ RecorderWidget::RecorderWidget() :
 	mainPanel->setBackground(rack::SVG::load(rack::assetPlugin(plugin, "res/recorder.svg")));
 	addChild(mainPanel);
 
-	addChild(rack::createScrew<rack::ScrewSilver>({15, 0}));
-	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, 0}));
-	addChild(rack::createScrew<rack::ScrewSilver>({15, box.size.y - 15}));
-	addChild(rack::createScrew<rack::ScrewSilver>({box.size.x - 30, box.size.y - 15}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({15, 0}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({box.size.x - 30, 0}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({15, box.size.y - 15}));
+	addChild(rack::Widget::create<rack::ScrewSilver>({box.size.x - 30, box.size.y - 15}));
 	addChild(m_leftMeter);
 	addChild(m_rightMeter);
 
-	setModule(m_recorder);
 	{
 		static constexpr float const Left = (Width - (PortSize * 2.f + Spacing)) / 2.f;
 
@@ -259,19 +273,20 @@ RecorderWidget::RecorderWidget() :
 
 	static constexpr float const Top = 90;
 
-	auto* const selectFileButton = createParam<ExtendedButton<rack::LEDButton>>({10, Top - 30}, Recorder::PARAM_SELECT_FILE, 0.f, 1.f, 0.f);
+	auto* const selectFileButton = rack::ParamWidget::create<ExtendedButton<rack::LEDButton>>({10, Top - 30}, m_recorder, Recorder::PARAM_SELECT_FILE, 0.0f, 1.0f, 0.0f);
 
-	createParam<rack::LEDButton>({10, Top}, Recorder::PARAM_RECORD_ARM, 0.f, 1.f, 0.f);
-	createParam<rack::LEDButton>({40, Top}, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f);
+	addParam(rack::ParamWidget::create<rack::LEDButton>({10, Top}, m_recorder, Recorder::PARAM_RECORD_ARM, 0.f, 1.f, 0.f));
+	addParam(rack::ParamWidget::create<rack::LEDButton>({40, Top}, m_recorder, Recorder::PARAM_START_STOP, 0.f, 1.f, 0.f));
 	createInput<rack::PJ301MPort>({37, Top + 25}, Recorder::INPUT_START_STOP);
 	createOutput<rack::PJ301MPort>({37, Top + 55}, Recorder::OUTPUT_START_STOP);
-	createLight<rack::SmallLight<rack::RedLight>>(rack::Vec{68, Top + 6}, Recorder::MAIN_LIGHT);
-	createLight<rack::TinyLight<rack::GreenLight>>(rack::Vec{16.5f, Top - 23.5f}, Recorder::FILE_LIGHT);
+	addChild(rack::ModuleLightWidget::create<rack::SmallLight<rack::RedLight>>(rack::Vec{68, Top + 6}, m_recorder, Recorder::MAIN_LIGHT));
+	addChild(rack::ModuleLightWidget::create<rack::TinyLight<rack::GreenLight>>(rack::Vec{16.5f, Top - 23.5f}, m_recorder, Recorder::FILE_LIGHT));
 
 	m_label->text = Recorder::NoneLabel;
 	m_label->box.pos.x = 22;
 	m_label->box.pos.y = Top - 32;
 	selectFileButton->setCallback(std::bind(&RecorderWidget::onSelectFileButtonClicked, this));
+	addParam(selectFileButton);
 
 	addChild(m_label);
 }
@@ -321,3 +336,5 @@ void RecorderWidget::step()
 	m_rightMeter->setValue(m_recorder->rightInputValue());
 	ExtendedModuleWidget::step();
 }
+
+rack::Model *modelRecorder = rack::Model::create<Recorder, RecorderWidget>("Simple", "IO-Recorder", "Recorder", rack::UTILITY_TAG);

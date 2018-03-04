@@ -1,6 +1,6 @@
 #if!defined EXTENDEDMODULEWIDGET_HPP
 #define EXTENDEDMODULEWIDGET_HPP
-#include <app.hpp>
+#include "rack.hpp"
 
 /*!
   	\class ExtendedModuleWidget
@@ -9,6 +9,8 @@
 class ExtendedModuleWidget : public rack::ModuleWidget
 {
 public:
+	ExtendedModuleWidget(rack::Module *module) : ModuleWidget(module) {};
+
 	/*!
 	  	\brief Create an input widget and add it to the module.
 		\param pos Position of the graphic input slot

@@ -236,7 +236,7 @@ void Clock::setGateTime(unsigned int const divisorIndex, std::chrono::nanosecond
 	getOutput(divisorIndex).setGateTime(time);
 }
 
-std::chrono::nanoseconds Clock::getGateTime(unsigned int const divisorIndex)const 
+std::chrono::nanoseconds Clock::getGateTime(unsigned int const divisorIndex)const
 {
 	return getOutput(divisorIndex).getGateTime();
 }

@@ -8,7 +8,7 @@ class TextDisplay;
 class ClockWidget : public ExtendedModuleWidget
 {
 public:
-	ClockWidget();
+	ClockWidget(Clock *module);
 
 	void step() override;
 private:
