@@ -1,6 +1,9 @@
 # VCVRack dist folder
 dist
 
+# VCVRack dep folder
+dep/
+
 # Jekyll
 docs/_site
 Gemfile.lock

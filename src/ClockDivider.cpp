@@ -151,7 +151,7 @@ private:
 	rack::SchmittTrigger m_clockTrigger;
 };
 
-struct ClockDividerKnob : rack::RoundSmallBlackSnapKnob
+struct ClockDividerKnob : rack::RoundBlackSnapKnob
 {
 	void connectLabel(rack::Label* label)
 	{
@@ -164,7 +164,7 @@ struct ClockDividerKnob : rack::RoundSmallBlackSnapKnob
 
 	void onChange(rack::EventChange& e) override
 	{
-		rack::RoundSmallBlackSnapKnob::onChange(e);
+		rack::RoundBlackSnapKnob::onChange(e);
 		if (linkedLabel)
 		{
 			linkedLabel->text = formatCurrentValue();
