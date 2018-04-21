@@ -13,6 +13,5 @@ void init(rack::Plugin *p)
 
 	p->addModel(modelButtonTrigger);
 	p->addModel(modelClockDivider);
-	p->addModel(modelRecorder);
 	p->addModel(modelClock);
 }

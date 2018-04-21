@@ -10,7 +10,6 @@ extern rack::Plugin *plugin;
 
 extern rack::Model *modelButtonTrigger;
 extern rack::Model *modelClockDivider;
-extern rack::Model *modelRecorder;
 extern rack::Model *modelClock;
 
 #endif
